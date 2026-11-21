@@ -317,7 +317,14 @@
       }
       if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
         const [d, m, y] = s.split("-");
-        return `${y}-${m}-${d}`; } const dObj = new Date(s); if (!isNaN(dObj.getTime())) { const y = dObj.getFullYear(); const m = String(dObj.getMonth() + 1).padStart(2, "0"); const d = String(dObj.getDate()).padStart(2, "0"); return `${y}-${m}-${d}`;
+        return `${y}-${m}-${d}`;
+      }
+      const dObj = new Date(s);
+      if (!isNaN(dObj.getTime())) {
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
       }
       return s.substring(0, 10);
     }
@@ -325,7 +332,94 @@
     function fechaDMA(val) {
       const iso = claveFecha(val);
       const p = iso.split("-");
-      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val \vert{}\vert{} ""); }  function mesClave(val, fechaVal) { if (val) { const s = String(val).trim(); if (/^\d{4}-\d{2}/.test(s)) return s.substring(0, 7); } const f = claveFecha(fechaVal); if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.substring(0, 7); if (val) { const dObj = new Date(String(val).trim()); if (!isNaN(dObj.getTime())) { return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}`; } } return ""; }  window.onload = () => { const savedUrl = localStorage.getItem("adalpe_url"); const savedPin = localStorage.getItem("adalpe_pin"); if (savedUrl) document.getElementById("input-url").value = savedUrl; if (savedPin) document.getElementById("input-pin").value = savedPin; const hoy = new Date(); document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0]; if (savedUrl && savedPin) conectarSistema(); };  function conectarSistema() { const url = document.getElementById("input-url").value.trim(); const pin = document.getElementById("input-pin").value.trim(); if (!url) return; localStorage.setItem("adalpe_url", url); localStorage.setItem("adalpe_pin", pin); cargarDatos(); }  function cerrarSesion() { document.getElementById("login-screen").classList.remove("hidden"); }  function cargarDatos() { const url = localStorage.getItem("adalpe_url"); const pin = localStorage.getItem("adalpe_pin"); const errEl = document.getElementById("login-error"); errEl.classList.add("hidden");  const cbName = "adalpeCallback_" + Date.now(); const script = document.createElement("script"); const timeout = setTimeout(() => { delete window[cbName]; script.remove(); errEl.textContent = "Tiempo agotado. Verifica que la URL termine en /exec y tenga acceso a Cualquier usuario."; errEl.classList.remove("hidden"); }, 12000);  window[cbName] = (data) => { clearTimeout(timeout); delete window[cbName]; script.remove(); if (!data \vert{}\vert{} data.status !== "ok") { errEl.textContent = (data && data.message) \vert{}\vert{} "PIN o URL incorrectos."; errEl.classList.remove("hidden"); return; } DB = data; document.getElementById("login-screen").classList.add("hidden"); inicializarFiltros(); renderDashboard(); poblarSelectorResumenSemanal(); renderResumenSemanal(); renderWidgetClases(); cargarFormularioFecha(); renderCuotas(); renderMatriculados(); };  script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); errEl.textContent = "No se pudo conectar. Verifica la URL de Apps Script."; errEl.classList.remove("hidden"); };  const sep = url.includes("?") ? "&" : "?"; script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
+      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val || "");
+    }
+
+    function mesClave(val, fechaVal) {
+      if (val) {
+        const s = String(val).trim();
+        if (/^\d{4}-\d{2}/.test(s)) return s.substring(0, 7);
+      }
+      const f = claveFecha(fechaVal);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.substring(0, 7);
+      if (val) {
+        const dObj = new Date(String(val).trim());
+        if (!isNaN(dObj.getTime())) {
+          return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}`;
+        }
+      }
+      return "";
+    }
+
+    window.onload = () => {
+      const savedUrl = localStorage.getItem("adalpe_url");
+      const savedPin = localStorage.getItem("adalpe_pin");
+      if (savedUrl) document.getElementById("input-url").value = savedUrl;
+      if (savedPin) document.getElementById("input-pin").value = savedPin;
+      const hoy = new Date();
+      document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
+      if (savedUrl && savedPin) conectarSistema();
+    };
+
+    function conectarSistema() {
+      const url = document.getElementById("input-url").value.trim();
+      const pin = document.getElementById("input-pin").value.trim();
+      if (!url) return;
+      localStorage.setItem("adalpe_url", url);
+      localStorage.setItem("adalpe_pin", pin);
+      cargarDatos();
+    }
+
+    function cerrarSesion() {
+      document.getElementById("login-screen").classList.remove("hidden");
+    }
+
+    function cargarDatos() {
+      const url = localStorage.getItem("adalpe_url");
+      const pin = localStorage.getItem("adalpe_pin");
+      const errEl = document.getElementById("login-error");
+      errEl.classList.add("hidden");
+
+      const cbName = "adalpeCallback_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        script.remove();
+        errEl.textContent = "Tiempo agotado. Verifica que la URL termine en /exec y tenga acceso a Cualquier usuario.";
+        errEl.classList.remove("hidden");
+      }, 12000);
+
+      window[cbName] = (data) => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        if (!data || data.status !== "ok") {
+          errEl.textContent = (data && data.message) || "PIN o URL incorrectos.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        DB = data;
+        document.getElementById("login-screen").classList.add("hidden");
+        inicializarFiltros();
+        renderDashboard();
+        poblarSelectorResumenSemanal();
+        renderResumenSemanal();
+        renderWidgetClases();
+        cargarFormularioFecha();
+        renderCuotas();
+        renderMatriculados();
+      };
+
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        errEl.textContent = "No se pudo conectar. Verifica la URL de Apps Script.";
+        errEl.classList.remove("hidden");
+      };
+
+      const sep = url.includes("?") ? "&" : "?";
+      script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
       document.body.appendChild(script);
     }
 
@@ -368,16 +462,18 @@
 
         const sep = url.includes("?") ? "&" : "?";
         const encoded = encodeURIComponent(JSON.stringify({ ...payload, pin }));
-        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha \vert{}\vert{} "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
+        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha || "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
         document.body.appendChild(script);
       });
     }
 
     function cambiarTab(tab) {
       ["dashboard", "asistencia", "cuotas", "matriculados"].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add("hidden"); document.getElementById(`tab-${t}`).classList.remove("tab-active");
+        document.getElementById(`view-${t}`).classList.add("hidden");
+        document.getElementById(`tab-${t}`).classList.remove("tab-active");
       });
-      document.getElementById(`view-${tab}`).classList.remove("hidden"); document.getElementById(`tab-${tab}`).classList.add("tab-active");
+      document.getElementById(`view-${tab}`).classList.remove("hidden");
+      document.getElementById(`tab-${tab}`).classList.add("tab-active");
     }
 
     function togglePresentacion() {
@@ -454,7 +550,30 @@
       const activos = DB.matriculados.filter(m => m.Estado === "Activo" && (obra === "TODAS" || m.Obra === obra)).length;
 
       document.getElementById("kpi-presentes").textContent = pres;
-      document.getElementById("kpi-pct-asistencia").textContent = `${pct}\%`; document.getElementById("kpi-evangelizados").textContent = totEvang; document.getElementById("kpi-tratados").textContent = totTrat; document.getElementById("kpi-just").textContent = just; document.getElementById("kpi-injust").textContent = inj; document.getElementById("kpi-visitas").textContent = vis; document.getElementById("kpi-activos").textContent = activos;  const groupKey = mes === "TODOS" ? "MES" : "FECHA"; const claves = [...new Set(DB.asistencia .filter(r => (mes === "TODOS" \vert{}\vert{} mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra)) .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) .filter(Boolean))].sort();  const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c); const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;  const seriePres = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && Number(r.Codigo) === 1).length); const serieJust = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && Number(r.Codigo) === 2).length); const serieInj  = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && Number(r.Codigo) === 0).length);  if (seriePres.length >= 2) { const diff = seriePres[seriePres.length - 1] - seriePres[seriePres.length - 2]; document.getElementById("kpi-var-asistencia").textContent = diff >= 0 ? `▲ +${diff} vs anterior` : `▼ ${diff} vs anterior`;
+      document.getElementById("kpi-pct-asistencia").textContent = `${pct}%`;
+      document.getElementById("kpi-evangelizados").textContent = totEvang;
+      document.getElementById("kpi-tratados").textContent = totTrat;
+      document.getElementById("kpi-just").textContent = just;
+      document.getElementById("kpi-injust").textContent = inj;
+      document.getElementById("kpi-visitas").textContent = vis;
+      document.getElementById("kpi-activos").textContent = activos;
+
+      const groupKey = mes === "TODOS" ? "MES" : "FECHA";
+      const claves = [...new Set(DB.asistencia
+        .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || r.Obra === obra))
+        .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha))
+        .filter(Boolean))].sort();
+
+      const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c);
+      const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;
+
+      const seriePres = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 1).length);
+      const serieJust = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 2).length);
+      const serieInj  = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 0).length);
+
+      if (seriePres.length >= 2) {
+        const diff = seriePres[seriePres.length - 1] - seriePres[seriePres.length - 2];
+        document.getElementById("kpi-var-asistencia").textContent = diff >= 0 ? `▲ +${diff} vs anterior` : `▼ ${diff} vs anterior`;
       }
 
       if (chartAsis) chartAsis.destroy();
@@ -546,7 +665,7 @@
         <p class="font-extrabold text-blue-950 uppercase border-b border-slate-200 pb-1">Asistencia Campaña General:</p>
         <div class="flex justify-between"><span>Matriculados</span><b>${pad2(matriculadosTotal)}</b></div>
         <div class="flex justify-between text-emerald-700 font-bold"><span>Presentes total</span><span>${pad2(presentes.length)}</span></div>
-        <div class="flex justify-between text-red-700 font-bold"><span>Faltas</span><span>${pad2(faltasTotal)} (justificadas${pad2(just)})</span></div>
+        <div class="flex justify-between text-red-700 font-bold"><span>Faltas</span><span>${pad2(faltasTotal)} (justificadas ${pad2(just)})</span></div>
         <div class="border-t border-slate-200 pt-1 space-y-0.5">
           <div class="flex justify-between"><span>L O</span><b>${pad2(lo)}</b></div>
           <div class="flex justify-between"><span>L H</span><b>${pad2(lh)}</b></div>
@@ -576,7 +695,7 @@
         <div class="bg-white p-2.5 rounded-lg border border-red-200 flex items-center justify-between gap-2 shadow-sm">
           <div>
             <p class="font-bold text-slate-900">${m.Nombres_Apellidos}</p>
-            <p class="text-[11px] text-red-700">${m.Obra} •${m.Motivo_Clases || "En curso"}</p>
+            <p class="text-[11px] text-red-700">${m.Obra} • ${m.Motivo_Clases || "En curso"}</p>
           </div>
           <button onclick="aprobarHermano('${m.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded transition">
             Aprobar
@@ -656,3 +775,152 @@
           <div class="px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50">
             <div class="min-w-[220px]">
               <span class="text-xs font-mono text-slate-400 mr-2">${m.ID}</span>
+              <span class="text-sm font-semibold text-slate-800">${m.Nombres_Apellidos}</span>
+              <span class="ml-2 text-[11px] text-slate-500">(${m.Obra})</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              ${[
+                { c: 1, lbl: "1 • Presente", cls: "bg-emerald-600 text-white" },
+                { c: 2, lbl: "2 • Justif.", cls: "bg-amber-500 text-white" },
+                { c: 0, lbl: "0 • Injust.", cls: "bg-red-600 text-white" },
+                { c: 3, lbl: "3 • Visita", cls: "bg-sky-600 text-white" }
+              ].map(btn => `
+                <button type="button" onclick="setCodigo('${m.ID}', ${btn.c})"
+                  class="px-2.5 py-1 rounded text-xs font-bold border transition ${st.codigo === btn.c ? btn.cls + ' border-transparent shadow-sm' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}">
+                  ${btn.lbl}
+                </button>
+              `).join("")}
+              <input type="text" value="${st.observacion}" onchange="setObs('${m.ID}', this.value)" placeholder="Nota..." class="ml-2 border border-slate-200 rounded px-2 py-1 text-xs w-32" />
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setCodigo(id, cod) {
+      if (!formState[id]) formState[id] = { codigo: cod, observacion: "" };
+      formState[id].codigo = cod;
+      renderListaAsistencia();
+    }
+
+    function setObs(id, txt) {
+      if (!formState[id]) formState[id] = { codigo: 1, observacion: "" };
+      formState[id].observacion = txt;
+    }
+
+    async function guardarSoloAsistencia() {
+      const btn = document.getElementById("btn-guardar-asis");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+      const fecha = claveFecha(document.getElementById("reg-fecha").value);
+      const obraFiltro = document.getElementById("reg-obra").value;
+
+      const registros = DB.matriculados
+        .filter(m => m.Estado === "Activo" && (obraFiltro === "TODAS" || m.Obra === obraFiltro))
+        .map(m => ({
+          id_hermano: m.ID,
+          nombre: m.Nombres_Apellidos,
+          obra: m.Obra,
+          codigo: formState[m.ID] ? formState[m.ID].codigo : 1,
+          observacion: formState[m.ID] ? formState[m.ID].observacion : ""
+        }));
+
+      const resp = await enviarAccion({ action: "saveAsistencia", fecha, obraFiltro, registros });
+      btn.disabled = false;
+      btn.textContent = "Guardar Asistencia del Viernes";
+      if (!resp || resp.status !== "error") {
+        alert("¡Asistencia del viernes guardada en Google Sheets!");
+      }
+    }
+
+    async function guardarSoloEvangelismo() {
+      const btn = document.getElementById("btn-guardar-evang");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+      const fecha = claveFecha(document.getElementById("reg-fecha").value);
+
+      const evangelismo = OBRAS.map(o => ({
+        obra: o,
+        evangelizados: document.getElementById(`ev-${o}`).value,
+        tratados: document.getElementById(`tr-${o}`).value
+      }));
+
+      const resp = await enviarAccion({ action: "saveEvangelismo", fecha, evangelismo });
+      btn.disabled = false;
+      btn.textContent = "Guardar Evangelizados y Tratados";
+      if (!resp || resp.status !== "error") {
+        alert("¡Evangelizados y tratados guardados en Google Sheets!");
+      }
+    }
+
+    function renderCuotas() {
+      const thead = document.getElementById("cuotas-thead");
+      thead.innerHTML = `<th class="px-3 py-3 sticky left-0 bg-slate-800">Hermano</th><th class="px-3 py-3">Obra</th>` +
+        PERIODOS_CUOTAS.map(p => `<th class="px-2 py-3 text-center">${p.slice(2)}</th>`).join("") +
+        `<th class="px-3 py-3 text-right">Total S/</th>`;
+
+      let totalGlobal = 0;
+      const tbody = document.getElementById("cuotas-tbody");
+      tbody.innerHTML = DB.cuotas.map(c => {
+        let countP = 0;
+        const cells = PERIODOS_CUOTAS.map(p => {
+          const isPaid = String(c[p] || "").trim().toUpperCase() === "P";
+          if (isPaid) countP++;
+          return `
+            <td class="px-1.5 py-2 text-center">
+              <button onclick="toggleCuota('${c.ID_Hermano}', '${p}', ${!isPaid})"
+                class="w-7 h-7 rounded font-bold transition ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
+                ${isPaid ? 'P' : '·'}
+              </button>
+            </td>
+          `;
+        }).join("");
+        const monto = countP * 2;
+        totalGlobal += monto;
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="px-3 py-2 font-semibold sticky left-0 bg-white">${c.Nombres_Apellidos}</td>
+            <td class="px-3 py-2 text-slate-500">${c.Obra}</td>
+            ${cells}
+            <td class="px-3 py-2 text-right font-bold text-emerald-700">S/ ${monto.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join("");
+      document.getElementById("total-recaudado-global").textContent = `S/ ${totalGlobal.toFixed(2)}`;
+    }
+
+    async function toggleCuota(idHermano, periodo, pagado) {
+      const row = DB.cuotas.find(c => c.ID_Hermano === idHermano);
+      if (row) row[periodo] = pagado ? "P" : "";
+      renderCuotas();
+      await enviarAccion({ action: "toggleCuota", id_hermano: idHermano, periodo, pagado });
+    }
+
+    function renderMatriculados() {
+      const tbody = document.getElementById("matriculados-tbody");
+      tbody.innerHTML = DB.matriculados.map(m => `
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-2.5 font-mono text-slate-500">${m.ID}</td>
+          <td class="px-4 py-2.5 font-semibold">${m.Nombres_Apellidos}</td>
+          <td class="px-4 py-2.5">${m.Obra}</td>
+          <td class="px-4 py-2.5">
+            <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${m.Estado === 'Activo' ? 'bg-emerald-100 text-emerald-800' : m.Estado === 'En Clases' ? 'bg-red-100 text-red-800' : 'bg-slate-200 text-slate-600'}">
+              ${m.Estado}
+            </span>
+          </td>
+          <td class="px-4 py-2.5">Injust: <b>${m.Injustificadas_Mes_Actual || 0}</b> | Just: <b>${m.Justificadas_Mes_Actual || 0}</b></td>
+          <td class="px-4 py-2.5 text-slate-500">${m.Motivo_Clases || "—"}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function agregarHermano() {
+      const nombre = document.getElementById("nuevo-nombre").value.trim();
+      const obra = document.getElementById("nuevo-obra").value;
+      if (!nombre) return;
+      document.getElementById("nuevo-nombre").value = "";
+      await enviarAccion({ action: "addHermano", nombre, obra });
+    }
+  </script>
+</body>
+</html>
