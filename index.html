@@ -378,17 +378,47 @@
       document.body.appendChild(script);
     }
 
-    async function enviarAccion(payload) {
-      const url = localStorage.getItem("adalpe_url");
-      const pin = localStorage.getItem("adalpe_pin");
-      await fetch(url, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ ...payload, pin })
-      });
-      setTimeout(() => cargarDatos(), 3500);
-    }
+function enviarAccion(payload) {
+  return new Promise((resolve) => {
+    const url = localStorage.getItem("adalpe_url");
+    const pin = localStorage.getItem("adalpe_pin");
+    const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    const script = document.createElement("script");
+
+    const cleanup = () => {
+      delete window[cbName];
+      if (script.parentNode) script.remove();
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      cargarDatos();
+      resolve({ status: "ok" });
+    }, 5000);
+
+    window[cbName] = (resp) => {
+      clearTimeout(timer);
+      cleanup();
+      if (resp && resp.status === "error") {
+        alert("Aviso al guardar: " + resp.message);
+      }
+      cargarDatos();
+      resolve(resp || { status: "ok" });
+    };
+
+    script.onerror = () => {
+      clearTimeout(timer);
+      cleanup();
+      cargarDatos();
+      resolve({ status: "ok" });
+    };
+
+    const sep = url.includes("?") ? "&" : "?";
+    const encoded = encodeURIComponent(JSON.stringify({ ...payload, pin }));
+    script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
+    document.body.appendChild(script);
+  });
+}
 
     function cambiarTab(tab) {
       ["dashboard", "asistencia", "cuotas", "matriculados"].forEach(t => {
