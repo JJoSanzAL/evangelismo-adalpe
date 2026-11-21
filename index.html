@@ -282,6 +282,32 @@
     let formState = {};
     let chartAsis = null, chartDona = null, chartEvang = null;
 
+    function claveFecha(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+        const [d, m, y] = s.split("/");
+        return `${y}-${m}-${d}`;
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const [d, m, y] = s.split("-");
+        return `${y}-${m}-${d}`;
+      }
+      return s.substring(0, 10);
+    }
+
+    function fechaDMA(val) {
+      const iso = claveFecha(val);
+      const p = iso.split("-");
+      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val || "");
+    }
+
+    function mesClave(val, fechaVal) {
+      const m = claveFecha(val).substring(0, 7);
+      if (m && m.length === 7) return m;
+      return claveFecha(fechaVal).substring(0, 7);
+    }
+
     window.onload = () => {
       const savedUrl = localStorage.getItem("adalpe_url");
       const savedPin = localStorage.getItem("adalpe_pin");
@@ -361,7 +387,7 @@
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ ...payload, pin })
       });
-      setTimeout(() => cargarDatos(), 1200);
+      setTimeout(() => cargarDatos(), 3500);
     }
 
     function cambiarTab(tab) {
@@ -378,7 +404,7 @@
     }
 
     function inicializarFiltros() {
-      const meses = [...new Set(DB.asistencia.map(a => a.Anio_Mes))].sort();
+      const meses = [...new Set(DB.asistencia.map(a => mesClave(a.Anio_Mes, a.Fecha)).filter(Boolean))].sort();
       const selMes = document.getElementById("filtro-mes");
       selMes.innerHTML = `<option value="TODOS">Todo el Año 2026</option>` +
         meses.map(m => `<option value="${m}">${m}</option>`).join("");
@@ -389,11 +415,12 @@
     function actualizarFiltroFechas() {
       const mes = document.getElementById("filtro-mes").value;
       const fechas = [...new Set(DB.asistencia
-        .filter(a => mes === "TODOS" || a.Anio_Mes === mes)
-        .map(a => a.Fecha))].sort();
+        .filter(a => mes === "TODOS" || mesClave(a.Anio_Mes, a.Fecha) === mes)
+        .map(a => claveFecha(a.Fecha))
+        .filter(Boolean))].sort();
       const selFecha = document.getElementById("filtro-fecha");
       selFecha.innerHTML = `<option value="TODAS">Todas las semanas del periodo</option>` +
-        fechas.map(f => `<option value="${f}">Viernes ${f}</option>`).join("");
+        fechas.map(f => `<option value="${f}">Viernes ${fechaDMA(f)}</option>`).join("");
     }
 
     function renderDashboard() {
@@ -402,15 +429,19 @@
       const obra = document.getElementById("filtro-obra").value;
 
       const asisFiltrada = DB.asistencia.filter(r => {
-        if (mes !== "TODOS" && r.Anio_Mes !== mes) return false;
-        if (fecha !== "TODAS" && r.Fecha !== fecha) return false;
+        const m = mesClave(r.Anio_Mes, r.Fecha);
+        const f = claveFecha(r.Fecha);
+        if (mes !== "TODOS" && m !== mes) return false;
+        if (fecha !== "TODAS" && f !== fecha) return false;
         if (obra !== "TODAS" && r.Obra !== obra) return false;
         return true;
       });
 
       const evangFiltrada = DB.evangelismo.filter(r => {
-        if (mes !== "TODOS" && r.Anio_Mes !== mes) return false;
-        if (fecha !== "TODAS" && r.Fecha !== fecha) return false;
+        const m = mesClave(r.Anio_Mes, r.Fecha);
+        const f = claveFecha(r.Fecha);
+        if (mes !== "TODOS" && m !== mes) return false;
+        if (fecha !== "TODAS" && f !== fecha) return false;
         if (obra !== "TODAS" && r.Obra !== obra) return false;
         return true;
       });
@@ -435,14 +466,19 @@
       document.getElementById("kpi-visitas").textContent = vis;
       document.getElementById("kpi-activos").textContent = activos;
 
-      const groupKey = mes === "TODOS" ? "Anio_Mes" : "Fecha";
-      const labels = [...new Set(DB.asistencia
-        .filter(r => (mes === "TODOS" || r.Anio_Mes === mes) && (obra === "TODAS" || r.Obra === obra))
-        .map(r => r[groupKey]))].sort();
+      const groupKey = mes === "TODOS" ? "MES" : "FECHA";
+      const claves = [...new Set(DB.asistencia
+        .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || r.Obra === obra))
+        .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha))
+        .filter(Boolean))].sort();
 
-      const seriePres = labels.map(l => DB.asistencia.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 1).length);
-      const serieJust = labels.map(l => DB.asistencia.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 2).length);
-      const serieInj  = labels.map(l => DB.asistencia.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 0).length);
+      const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c);
+
+      const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;
+
+      const seriePres = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 1).length);
+      const serieJust = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 2).length);
+      const serieInj  = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 0).length);
 
       if (seriePres.length >= 2) {
         const diff = seriePres[seriePres.length - 1] - seriePres[seriePres.length - 2];
@@ -473,8 +509,8 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      const serieEv = labels.map(l => DB.evangelismo.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra)).reduce((a, b) => a + (Number(b.Evangelizados) || 0), 0));
-      const serieTr = labels.map(l => DB.evangelismo.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra)).reduce((a, b) => a + (Number(b.Tratados_Entregados) || 0), 0));
+      const serieEv = claves.map(c => DB.evangelismo.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra)).reduce((a, b) => a + (Number(b.Evangelizados) || 0), 0));
+      const serieTr = claves.map(c => DB.evangelismo.filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra)).reduce((a, b) => a + (Number(b.Tratados_Entregados) || 0), 0));
 
       if (chartEvang) chartEvang.destroy();
       chartEvang = new Chart(document.getElementById("chart-evangelismo"), {
@@ -517,21 +553,30 @@
     }
 
     function cargarFormularioFecha() {
-      const fecha = document.getElementById("reg-fecha").value;
+      const fecha = claveFecha(document.getElementById("reg-fecha").value);
       formState = {};
-      const existentes = DB.asistencia.filter(a => a.Fecha === fecha);
+      const existentes = DB.asistencia.filter(a => claveFecha(a.Fecha) === fecha);
+
+      const badge = document.getElementById("contador-rapido");
+      if (existentes.length > 0) {
+        badge.textContent = `Fecha ya guardada (${fechaDMA(fecha)}) — Cambia solo lo necesario`;
+        badge.className = "text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded";
+      } else {
+        badge.textContent = `Fecha nueva (${fechaDMA(fecha)})`;
+        badge.className = "text-xs font-bold text-blue-900";
+      }
 
       DB.matriculados.filter(m => m.Estado === "Activo").forEach(m => {
-        const found = existentes.find(e => e.ID_Hermano === m.ID);
+        const found = existentes.find(e => String(e.ID_Hermano).trim() === String(m.ID).trim());
         formState[m.ID] = {
-          codigo: found ? Number(found.Codigo) : 1,
+          codigo: found !== undefined ? Number(found.Codigo) : 1,
           observacion: found ? (found.Observacion || "") : ""
         };
       });
 
       const gridEv = document.getElementById("grid-evangelismo-obras");
       gridEv.innerHTML = OBRAS.map(o => {
-        const foundEv = DB.evangelismo.find(e => e.Fecha === fecha && e.Obra === o);
+        const foundEv = DB.evangelismo.find(e => claveFecha(e.Fecha) === fecha && e.Obra === o);
         const evVal = foundEv && foundEv.Evangelizados !== "" ? foundEv.Evangelizados : "";
         const trVal = foundEv && foundEv.Tratados_Entregados !== "" ? foundEv.Tratados_Entregados : "";
         return `
@@ -610,7 +655,7 @@
       const btn = document.getElementById("btn-guardar-asis");
       btn.disabled = true;
       btn.textContent = "Guardando...";
-      const fecha = document.getElementById("reg-fecha").value;
+      const fecha = claveFecha(document.getElementById("reg-fecha").value);
       const registros = DB.matriculados
         .filter(m => m.Estado === "Activo")
         .map(m => ({
