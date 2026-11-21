@@ -1,125 +1,909 @@
-function obtenerListaCurso() {
-  return DB.matriculados.filter(m => normalizarEstado(m.Estado) === "En Clases");
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaña Evangelizadora ADALPE — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f1f5f9; }
+    .tab-active { border-bottom: 3px solid #1e3a8a; color: #1e3a8a; font-weight: 700; }
+    .presentation-mode header, .presentation-mode nav { display: none !important; }
+    .presentation-mode #btn-exit-pres { display: flex !important; }
+    @media (min-width: 1024px) {
+      .main-safe-area { padding-right: 22.5rem; }
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-52">
 
-function renderWidgetClases() {
-  const listaCurso = obtenerListaCurso();
-  document.getElementById("badge-count-clases").textContent = listaCurso.length;
-  const body = document.getElementById("widget-clases-body");
-  if (listaCurso.length === 0) {
-    body.innerHTML = `<p class="text-slate-500 text-center py-2">Ningún hermano marcado en curso de evangelismo.</p>`;
-    return;
-  }
-  body.innerHTML = listaCurso.map(m => {
-    const detalle = m.Motivo_Clases || "En curso de evangelismo";
-    return `
-      <div class="bg-white p-2.5 rounded-lg border border-red-200 flex items-center justify-between gap-2 shadow-sm">
-        <div>
-          <p class="font-bold text-slate-900">${m.Nombres_Apellidos}</p>
-          <p class="text-[11px] text-red-700">${m.Obra} • ${detalle}</p>
-        </div>
-        <button onclick="aprobarHermano('${m.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded transition">
-          Aprobar
+  <div id="login-screen" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+      <div class="text-center">
+        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full mb-2">ADALPE • CONTROL EVANGELÍSTICO</span>
+        <h1 class="text-2xl font-bold text-slate-900">Acceso al Sistema</h1>
+        <p class="text-sm text-slate-500 mt-1">Ingresa tu clave de acceso para continuar</p>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Clave de Acceso</label>
+        <input id="input-pin" type="password" placeholder="Ingresa la clave" onkeydown="if(event.key==='Enter') conectarSistema()" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600" />
+      </div>
+      <button onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg transition shadow">
+        Ingresar
+      </button>
+      <p id="login-error" class="text-xs text-red-600 text-center hidden"></p>
+    </div>
+  </div>
+
+  <button id="btn-exit-pres" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-40 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg items-center gap-1 opacity-80 hover:opacity-100">
+    Salir de Presentación
+  </button>
+
+  <header class="bg-blue-950 text-white px-6 py-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">Campaña Evangelizadora — ADALPE</h1>
+        <p class="text-xs text-blue-200">Panel de Control, Asistencia, Evangelismo y Cuotas</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="cargarDatos()" class="bg-blue-800 hover:bg-blue-700 text-xs px-3 py-2 rounded-lg font-medium transition">
+          Actualizar Datos
+        </button>
+        <button onclick="togglePresentacion()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-2 rounded-lg font-semibold transition shadow">
+          Modo Presentación
+        </button>
+        <button onclick="cerrarSesion()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded-lg transition">
+          Bloquear
         </button>
       </div>
-    `;
-  }).join("");
-}
+    </div>
+  </header>
 
-async function cambiarEstadoCursoHermano(idHermano, opcion) {
-  const hermano = DB.matriculados.find(m => String(m.ID).trim() === String(idHermano).trim());
-  if (!hermano) return;
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 flex gap-6 overflow-x-auto text-sm">
+      <button onclick="cambiarTab('dashboard')" id="tab-dashboard" class="py-3.5 tab-active whitespace-nowrap">1. Dashboard y Gráficos</button>
+      <button onclick="cambiarTab('asistencia')" id="tab-asistencia" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">2. Tomar Asistencia (Viernes)</button>
+      <button onclick="cambiarTab('cuotas')" id="tab-cuotas" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">3. Cuotas (S/ 2.00)</button>
+      <button onclick="cambiarTab('matriculados')" id="tab-matriculados" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">4. Matriculados</button>
+    </div>
+  </nav>
 
-  let nuevoEstado = "Activo";
-  let motivo = "";
-
-  if (opcion === "SI") {
-    nuevoEstado = "En Clases";
-    motivo = "Marcado en curso de evangelismo";
-  } else if (opcion === "INACTIVO") {
-    nuevoEstado = "Inactivo";
-    motivo = "Inactivo (retirado por inasistencia a cursos/evangelismo)";
-  } else {
-    nuevoEstado = "Activo";
-    motivo = "";
-  }
-
-  hermano.Estado = nuevoEstado;
-  hermano.Motivo_Clases = motivo;
-
-  renderWidgetClases();
-  renderMatriculados();
-  renderListaAsistencia();
-
-  await enviarAccion({
-    action: "setEstadoHermano",
-    id_hermano: idHermano,
-    estado: nuevoEstado,
-    motivo: motivo
-  });
-}
-
-function renderMatriculados() {
-  const tbody = document.getElementById("matriculados-tbody");
-  tbody.innerHTML = DB.matriculados.map(m => {
-    const est = normalizarEstado(m.Estado);
-    const inj = Number(m.Injustificadas_Mes_Actual) || 0;
-    const just = Number(m.Justificadas_Mes_Actual) || 0;
-
-    const opcionActual = est === "En Clases" ? "SI" : (est === "Inactivo" ? "INACTIVO" : "ACTIVO");
-
-    const badgeEst = est === "Activo"
-      ? "bg-emerald-100 text-emerald-800"
-      : est === "En Clases"
-        ? "bg-red-100 text-red-800"
-        : "bg-slate-200 text-slate-600";
-
-    let faltasHtml;
-    if (est === "Inactivo") {
-      faltasHtml = `<span class="text-slate-400 italic">No aplica (Inactivo)</span>`;
-    } else {
-      const clsInj = inj === 0
-        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-        : inj === 1
-          ? "bg-amber-100 text-amber-800 border-amber-300"
-          : "bg-red-100 text-red-800 border-red-300";
-
-      const clsJust = just === 0
-        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-        : (just === 1 || just === 2)
-          ? "bg-amber-100 text-amber-800 border-amber-300"
-          : "bg-red-100 text-red-800 border-red-300";
-
-      faltasHtml = `
-        <span class="inline-block px-2 py-0.5 rounded border font-bold ${clsInj}">Injust: ${inj}</span>
-        <span class="mx-1 text-slate-400">|</span>
-        <span class="inline-block px-2 py-0.5 rounded border font-bold ${clsJust}">Just: ${just}</span>
-      `;
-    }
-
-    const motivoTexto = obtenerMotivoHermano(m, inj, just);
-
-    return `
-      <tr class="hover:bg-slate-50">
-        <td class="px-4 py-2.5 font-mono text-slate-500">${m.ID}</td>
-        <td class="px-4 py-2.5 font-semibold">${m.Nombres_Apellidos}</td>
-        <td class="px-4 py-2.5">${m.Obra}</td>
-        <td class="px-4 py-2.5">
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${badgeEst}">
-              ${est}
-            </span>
-            <select onchange="cambiarEstadoCursoHermano('${m.ID}', this.value)"
-              class="border border-slate-300 rounded px-2 py-1 text-[11px] font-semibold bg-white text-slate-800">
-              <option value="ACTIVO" ${opcionActual === "ACTIVO" ? "selected" : ""}>En curso: No (Activo)</option>
-              <option value="SI" ${opcionActual === "SI" ? "selected" : ""}>En curso: Sí</option>
-              <option value="INACTIVO" ${opcionActual === "INACTIVO" ? "selected" : ""}>Inactivo</option>
+  <main class="max-w-7xl mx-auto px-6 py-6 main-safe-area">
+    <section id="view-dashboard" class="space-y-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">Periodo (Mes)</label>
+            <select id="filtro-mes" onchange="actualizarFiltroFechas(); renderDashboard();" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+              <option value="TODOS">Todo el Año 2026</option>
             </select>
           </div>
-        </td>
-        <td class="px-4 py-2.5">${faltasHtml}</td>
-        <td class="px-4 py-2.5 text-slate-600">${motivoTexto}</td>
-      </tr>
-    `;
-  }).join("");
-}
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">Viernes Específico</label>
+            <select id="filtro-fecha" onchange="renderDashboard()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+              <option value="TODAS">Todas las semanas del periodo</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">Obra / Sector</label>
+            <select id="filtro-obra" onchange="renderDashboard()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+              <option value="TODAS">Total ADALPE (Todas)</option>
+              <option value="Los Olivos">Los Olivos</option>
+              <option value="Nuevo Amanecer">Nuevo Amanecer</option>
+              <option value="Los Heraldos">Los Heraldos</option>
+              <option value="SJL">SJL</option>
+              <option value="Belaunde">Belaunde</option>
+            </select>
+          </div>
+        </div>
+        <div id="badge-comparativo" class="text-xs font-semibold px-3 py-2 rounded-lg bg-blue-50 text-blue-900 border border-blue-200">
+          Comparativo semanal y mensual activo
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-600">
+          <p class="text-xs font-bold text-slate-500 uppercase">Asistencia Efectiva (Presentes)</p>
+          <div class="flex items-baseline justify-between mt-2 gap-2">
+            <div class="flex items-baseline gap-1.5">
+              <h2 id="kpi-presentes" class="text-3xl font-extrabold text-slate-900">0</h2>
+              <span class="text-xs font-semibold text-slate-500">hermanos</span>
+            </div>
+            <span id="kpi-pct-asistencia" class="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">0%</span>
+          </div>
+          <p id="kpi-var-asistencia" class="text-xs text-slate-500 mt-2">vs. periodo anterior: —</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
+          <p class="text-xs font-bold text-slate-500 uppercase">Personas Evangelizadas</p>
+          <div class="flex items-baseline justify-between mt-2">
+            <h2 id="kpi-evangelizados" class="text-3xl font-extrabold text-slate-900">0</h2>
+            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Almas</span>
+          </div>
+          <p id="kpi-var-evang" class="text-xs text-slate-500 mt-2">vs. periodo anterior: —</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-orange-500">
+          <p class="text-xs font-bold text-slate-500 uppercase">Tratados Entregados</p>
+          <div class="flex items-baseline justify-between mt-2">
+            <h2 id="kpi-tratados" class="text-3xl font-extrabold text-slate-900">0</h2>
+            <span class="text-xs font-semibold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">Literatura</span>
+          </div>
+          <p id="kpi-var-tratados" class="text-xs text-slate-500 mt-2">vs. periodo anterior: —</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500">
+          <p class="text-xs font-bold text-slate-500 uppercase">Faltas y Visitas</p>
+          <div class="flex items-center justify-between mt-2 text-sm font-bold">
+            <span class="text-amber-700">Just: <b id="kpi-just">0</b></span>
+            <span class="text-red-700">Injust: <b id="kpi-injust">0</b></span>
+            <span class="text-sky-700">Visitas: <b id="kpi-visitas">0</b></span>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">Matriculados activos: <b id="kpi-activos">0</b></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-8">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">Estadística de Líneas (Tratados, Evangelizados y Hermanos Presentes)</h3>
+          <p class="text-[11px] text-slate-500 mb-3">Muestra la evolución en cada fecha/mes e indica si subió (▲) o bajó (▼) frente al periodo anterior.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-3 rounded-lg border border-orange-200 bg-orange-50/30">
+              <p class="text-xs font-bold text-orange-800">Tratados Entregados</p>
+              <p id="linea-estado-tratados" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
+              <div class="h-52">
+                <canvas id="chart-var-tratados"></canvas>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg border border-blue-200 bg-blue-50/30">
+              <p class="text-xs font-bold text-blue-800">Evangelizados</p>
+              <p id="linea-estado-evang" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
+              <div class="h-52">
+                <canvas id="chart-var-evang"></canvas>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg border border-emerald-200 bg-emerald-50/30">
+              <p class="text-xs font-bold text-emerald-800">Hermanos Presentes</p>
+              <p id="linea-estado-hermanos" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
+              <div class="h-52">
+                <canvas id="chart-var-hermanos"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-4 mr-2">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Distribución del Periodo (Circular)</h3>
+          <div class="relative h-64 flex items-center justify-center px-2">
+            <canvas id="chart-dona"></canvas>
+            <p id="dona-empty-msg" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-medium">Sin registros en este filtro para graficar.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-7">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
+          <div class="h-64">
+            <canvas id="chart-asistencia"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-5 mr-2">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Evangelizados y Tratados por Periodo</h3>
+          <div class="h-64">
+            <canvas id="chart-evangelismo"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-asistencia" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-wrap gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fecha del Viernes</label>
+            <input type="date" id="reg-fecha" onchange="cargarFormularioFecha()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Filtrar Obra</label>
+            <select id="reg-obra" onchange="renderListaAsistencia()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <option value="TODAS">Todas las Obras</option>
+              <option value="Los Olivos">Los Olivos</option>
+              <option value="Nuevo Amanecer">Nuevo Amanecer</option>
+              <option value="Los Heraldos">Los Heraldos</option>
+              <option value="SJL">SJL</option>
+              <option value="Belaunde">Belaunde</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">Evangelizados, Tratados y Visitas por Obra (Esta Fecha)</h3>
+            <p class="text-xs text-slate-500">Ingresa el número de visitas por obra (ej. 3 en SJL) para sumarlas en el Resumen Semanal y estadísticas.</p>
+          </div>
+          <button onclick="guardarSoloEvangelismo()" id="btn-guardar-evang" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition">
+            Guardar Evangelizados, Tratados y Visitas
+          </button>
+        </div>
+        <div id="grid-evangelismo-obras" class="grid grid-cols-1 md:grid-cols-5 gap-3"></div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-xs font-bold text-slate-600 uppercase">Lista de Matriculados Activos (1=Presente, 2=Justificada, 0=Injustificada)</span>
+            <span id="contador-rapido" class="text-xs font-bold text-blue-900"></span>
+          </div>
+          <button onclick="guardarSoloAsistencia()" id="btn-guardar-asis" class="bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow transition">
+            Guardar Asistencia del Viernes
+          </button>
+        </div>
+        <div id="lista-asistencia-body" class="divide-y divide-slate-100"></div>
+      </div>
+    </section>
+
+    <section id="view-cuotas" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Control de Cuotas Mensuales (S/ 2.00 fijo)</h2>
+          <p class="text-xs text-slate-500">Haz clic en cualquier mes para marcar o desmarcar el pago de S/ 2.00. Se guarda automáticamente.</p>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-lg text-right">
+          <span class="block text-[11px] font-bold text-emerald-800 uppercase">Total Recaudado General</span>
+          <span id="total-recaudado-global" class="text-xl font-extrabold text-emerald-700">S/ 0.00</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800 text-white uppercase">
+            <tr id="cuotas-thead"></tr>
+          </thead>
+          <tbody id="cuotas-tbody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="view-matriculados" class="hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h3 class="text-sm font-bold text-slate-800 mb-3">Agregar Nuevo Matriculado</h3>
+        <div class="flex flex-wrap gap-3">
+          <input type="text" id="nuevo-nombre" placeholder="Nombres y Apellidos" class="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px]" />
+          <select id="nuevo-obra" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option value="Los Olivos">Los Olivos</option>
+            <option value="Nuevo Amanecer">Nuevo Amanecer</option>
+            <option value="Los Heraldos">Los Heraldos</option>
+            <option value="SJL">SJL</option>
+            <option value="Belaunde">Belaunde</option>
+          </select>
+          <button onclick="agregarHermano()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+            + Matricular
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800 text-white uppercase">
+            <tr>
+              <th class="px-4 py-3">ID</th>
+              <th class="px-4 py-3">Nombres y Apellidos</th>
+              <th class="px-4 py-3">Obra</th>
+              <th class="px-4 py-3">Estado / En Curso</th>
+              <th class="px-4 py-3">Faltas Mes Actual (Injust / Just)</th>
+              <th class="px-4 py-3">Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="matriculados-tbody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="fixed bottom-4 right-4 z-40 w-80 space-y-2.5">
+    <aside id="widget-resumen-semanal" class="bg-white rounded-xl shadow-xl border border-blue-200 overflow-hidden">
+      <div class="bg-blue-950 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-resumen-body').classList.toggle('hidden')">
+        <span class="text-xs font-bold tracking-wide">Resumen Semanal</span>
+        <span id="badge-fecha-resumen" class="bg-blue-800 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded">—</span>
+      </div>
+      <div class="px-3 pt-2 pb-1.5 bg-blue-50/70 border-b border-blue-100" onclick="event.stopPropagation()">
+        <label for="resumen-semana-select" class="block text-[10px] font-bold text-blue-900 uppercase mb-0.5">Buscar / Elegir Semana</label>
+        <select id="resumen-semana-select" onchange="renderResumenSemanal(this.value)" class="w-full border border-blue-200 bg-white rounded px-2 py-1 text-[11px] font-semibold text-slate-800">
+          <option value="">Última semana</option>
+        </select>
+      </div>
+      <div id="widget-resumen-body" class="p-3 max-h-[27rem] overflow-y-auto text-[11px] space-y-1.5 bg-slate-50/70">
+        <p class="text-slate-500 text-center py-2">Cargando resumen...</p>
+      </div>
+    </aside>
+
+    <aside id="widget-clases" class="bg-white rounded-xl shadow-xl border border-red-200 overflow-hidden">
+      <div class="bg-red-900 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-clases-body').classList.toggle('hidden')">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-xs font-bold tracking-wide">Hermanos en curso de evangelismo</span>
+        </div>
+        <span id="badge-count-clases" class="bg-red-700 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div id="widget-clases-body" class="p-3 max-h-44 overflow-y-auto space-y-2 bg-red-50/40 text-xs">
+        <p class="text-slate-500 text-center py-2">Ningún hermano marcado en curso de evangelismo.</p>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const URL_SCRIPT_FIJA = "https://script.google.com/macros/s/AKfycbwgMN-HFvPqNfGb-4LYzfekQkoivYaPKugJd80kLdf6AvpBss873mNP7EJNk26lAq2QVA/exec";
+    const OBRAS = ["Los Olivos", "Nuevo Amanecer", "Los Heraldos", "SJL", "Belaunde"];
+    const PERIODOS_CUOTAS = ["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12","2027-01","2027-02"];
+    let DB = { matriculados: [], asistencia: [], evangelismo: [], cuotas: [] };
+    let formState = {};
+    let visitasCache = {};
+    let chartAsis = null, chartDona = null, chartEvang = null;
+    let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
+
+    function getUrlActiva() {
+      return URL_SCRIPT_FIJA;
+    }
+
+    function cargarCacheVisitas() {
+      try {
+        const raw = localStorage.getItem("adalpe_visitas_cache");
+        visitasCache = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        visitasCache = {};
+      }
+    }
+
+    function guardarCacheVisitas() {
+      try {
+        localStorage.setItem("adalpe_visitas_cache", JSON.stringify(visitasCache));
+      } catch (e) {}
+    }
+
+    function claveFecha(val) {
+      if (!val) return "";
+      const s = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+        const [d, m, y] = s.split("/");
+        return `${y}-${m}-${d}`;
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const [d, m, y] = s.split("-");
+        return `${y}-${m}-${d}`;
+      }
+      const dObj = new Date(s);
+      if (!isNaN(dObj.getTime())) {
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+      return s.substring(0, 10);
+    }
+
+    function fechaDMA(val) {
+      const iso = claveFecha(val);
+      const p = iso.split("-");
+      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val || "");
+    }
+
+    function mesClave(val, fechaVal) {
+      if (val) {
+        const s = String(val).trim();
+        if (/^\d{4}-\d{2}/.test(s)) return s.substring(0, 7);
+      }
+      const f = claveFecha(fechaVal);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.substring(0, 7);
+      if (val) {
+        const dObj = new Date(String(val).trim());
+        if (!isNaN(dObj.getTime())) {
+          return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}`;
+        }
+      }
+      return "";
+    }
+
+    function normalizarEstado(val) {
+      return String(val || "").trim();
+    }
+
+    function normalizarObraTexto(val) {
+      const s = String(val || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\./g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (s === "lo" || s === "l o" || s.includes("los olivos") || s.includes("central")) return "Los Olivos";
+      if (s === "lh" || s === "l h" || s.includes("heraldos")) return "Los Heraldos";
+      if (s.includes("belaunde")) return "Belaunde";
+      if (s === "na" || s === "n a" || s.includes("nuevo amanecer") || s.includes("amanecer")) return "Nuevo Amanecer";
+      if (s === "sjl" || s === "s j l" || s.includes("san juan")) return "SJL";
+      return String(val || "").trim();
+    }
+
+    window.onload = () => {
+      cargarCacheVisitas();
+      const hoy = new Date();
+      document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
+      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
+    };
+
+    function conectarSistema() {
+      const pin = document.getElementById("input-pin").value.trim();
+      if (!pin) return;
+      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
+      localStorage.setItem("adalpe_pin", pin);
+      cargarDatos();
+    }
+
+    function cerrarSesion() {
+      document.getElementById("input-pin").value = "";
+      document.getElementById("login-screen").classList.remove("hidden");
+    }
+
+    function cargarDatos() {
+      const url = getUrlActiva();
+      const pin = localStorage.getItem("adalpe_pin") || document.getElementById("input-pin").value.trim();
+      const errEl = document.getElementById("login-error");
+      errEl.classList.add("hidden");
+
+      const cbName = "adalpeCallback_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        if (script.parentNode) script.remove();
+        errEl.textContent = "Tiempo agotado al conectar con el servidor.";
+        errEl.classList.remove("hidden");
+      }, 12000);
+
+      window[cbName] = (data) => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        if (script.parentNode) script.remove();
+        if (!data || data.status !== "ok") {
+          errEl.textContent = (data && data.message) || "Clave incorrecta.";
+          errEl.classList.remove("hidden");
+          document.getElementById("login-screen").classList.remove("hidden");
+          return;
+        }
+        DB = data;
+        document.getElementById("login-screen").classList.add("hidden");
+        try {
+          inicializarFiltros();
+          renderDashboard();
+          poblarSelectorResumenSemanal();
+          renderResumenSemanal();
+          renderWidgetClases();
+          cargarFormularioFecha();
+          renderCuotas();
+          renderMatriculados();
+        } catch (err) {
+          console.error("Error al renderizar:", err);
+        }
+      };
+
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        if (script.parentNode) script.remove();
+        errEl.textContent = "No se pudo conectar con la base de datos.";
+        errEl.classList.remove("hidden");
+      };
+
+      const sep = url.includes("?") ? "&" : "?";
+      script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
+      document.body.appendChild(script);
+    }
+
+    function enviarAccion(payload) {
+      return new Promise((resolve) => {
+        const url = getUrlActiva();
+        const pin = localStorage.getItem("adalpe_pin") || document.getElementById("input-pin").value.trim();
+        const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+        const script = document.createElement("script");
+        let respFinal = { status: "ok" };
+
+        const cleanup = () => {
+          delete window[cbName];
+          if (script.parentNode) script.remove();
+        };
+
+        const timer = setTimeout(() => {
+          cleanup();
+          setTimeout(cargarDatos, 900);
+          resolve(respFinal);
+        }, 5000);
+
+        window[cbName] = (resp) => {
+          clearTimeout(timer);
+          cleanup();
+          respFinal = resp || { status: "ok" };
+          if (respFinal.status === "error") {
+            alert("Aviso al guardar: " + respFinal.message);
+          }
+          setTimeout(cargarDatos, 900);
+          resolve(respFinal);
+        };
+
+        script.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          setTimeout(cargarDatos, 900);
+          resolve(respFinal);
+        };
+
+        const sep = url.includes("?") ? "&" : "?";
+        const encoded = encodeURIComponent(JSON.stringify({ ...payload, pin }));
+        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha || "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    function cambiarTab(tab) {
+      ["dashboard", "asistencia", "cuotas", "matriculados"].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add("hidden");
+        document.getElementById(`tab-${t}`).classList.remove("tab-active");
+      });
+      document.getElementById(`view-${tab}`).classList.remove("hidden");
+      document.getElementById(`tab-${tab}`).classList.add("tab-active");
+    }
+
+    function togglePresentacion() {
+      document.body.classList.toggle("presentation-mode");
+    }
+
+    function inicializarFiltros() {
+      const meses = [...new Set(DB.asistencia.map(a => mesClave(a.Anio_Mes, a.Fecha)).filter(m => /^\d{4}-\d{2}$/.test(m)))].sort();
+      const selMes = document.getElementById("filtro-mes");
+      selMes.innerHTML = `<option value="TODOS">Todo el Año 2026</option>` +
+        meses.map(m => `<option value="${m}">${m}</option>`).join("");
+      if (meses.length > 0) selMes.value = meses[meses.length - 1];
+      actualizarFiltroFechas();
+    }
+
+    function actualizarFiltroFechas() {
+      const mes = document.getElementById("filtro-mes").value;
+      const fechas = [...new Set(DB.asistencia
+        .filter(a => mes === "TODOS" || mesClave(a.Anio_Mes, a.Fecha) === mes)
+        .map(a => claveFecha(a.Fecha))
+        .filter(f => /^\d{4}-\d{2}-\d{2}$/.test(f)))].sort();
+      const selFecha = document.getElementById("filtro-fecha");
+      selFecha.innerHTML = `<option value="TODAS">Todas las semanas del periodo</option>` +
+        fechas.map(f => `<option value="${f}">Viernes ${fechaDMA(f)}</option>`).join("");
+    }
+
+    function poblarSelectorResumenSemanal() {
+      const fechas = [...new Set(DB.asistencia.map(a => claveFecha(a.Fecha)).filter(f => /^\d{4}-\d{2}-\d{2}$/.test(f)))].sort();
+      const sel = document.getElementById("resumen-semana-select");
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = fechas.slice().reverse().map(f =>
+        `<option value="${f}">Semana ${fechaDMA(f)}</option>`
+      ).join("");
+      if (prev && fechas.includes(prev)) {
+        sel.value = prev;
+      } else if (fechas.length > 0) {
+        sel.value = fechas[fechas.length - 1];
+      }
+    }
+
+    function obtenerVisitasPorObraYFecha(fechaIso, obraNombre) {
+      const obrasTarget = (!obraNombre || obraNombre === "TODAS") ? OBRAS : [obraNombre];
+      let total = 0;
+
+      obrasTarget.forEach(o => {
+        const evRow = DB.evangelismo.find(r =>
+          claveFecha(r.Fecha) === fechaIso &&
+          normalizarObraTexto(r.Obra) === o
+        );
+        const tieneValorSheet = evRow && evRow.Visitas !== undefined && evRow.Visitas !== null && String(evRow.Visitas).trim() !== "";
+        const cacheKey = `${fechaIso}__${o}`;
+
+        if (tieneValorSheet) {
+          const vSheet = Number(evRow.Visitas) || 0;
+          visitasCache[cacheKey] = vSheet;
+          total += vSheet;
+        } else if (visitasCache[cacheKey] !== undefined) {
+          total += (Number(visitasCache[cacheKey]) || 0);
+        }
+
+        const asisVisitas = DB.asistencia.filter(r =>
+          claveFecha(r.Fecha) === fechaIso &&
+          normalizarObraTexto(r.Obra) === o &&
+          Number(r.Codigo) === 3
+        ).length;
+        total += asisVisitas;
+      });
+
+      return total;
+    }
+
+    function crearGraficoLineaReal(canvasId, instanceRef, labelText, dataArr, colorHex, labelsArr) {
+      if (instanceRef) instanceRef.destroy();
+      return new Chart(document.getElementById(canvasId), {
+        type: "line",
+        data: {
+          labels: labelsArr || [],
+          datasets: [{
+            label: labelText,
+            data: dataArr,
+            borderColor: colorHex,
+            backgroundColor: colorHex,
+            tension: 0.25,
+            borderWidth: 2,
+            pointRadius: 3.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const idx = ctx.dataIndex;
+                  const val = ctx.parsed.y;
+                  if (idx === 0) return `${labelText}: ${val}`;
+                  const prev = dataArr[idx - 1];
+                  const diff = val - prev;
+                  if (diff > 0) return `${labelText}: ${val} (▲ Subió +${diff})`;
+                  if (diff < 0) return `${labelText}: ${val} (▼ Bajó ${Math.abs(diff)})`;
+                  return `${labelText}: ${val} (Sin cambio)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function actualizarTextoLineaEstado(elId, arr, unidad) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (!arr || arr.length === 0) {
+        el.textContent = "Sin datos";
+        return;
+      }
+      if (arr.length === 1) {
+        el.textContent = `Actual: ${arr[0]} ${unidad}`;
+        return;
+      }
+      const diff = arr[arr.length - 1] - arr[arr.length - 2];
+      if (diff > 0) {
+        el.textContent = `▲ Subió +${diff} vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-bold text-emerald-700 mb-2";
+      } else if (diff < 0) {
+        el.textContent = `▼ Bajó ${Math.abs(diff)} vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-bold text-amber-700 mb-2";
+      } else {
+        el.textContent = `Sin cambio vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-semibold text-slate-600 mb-2";
+      }
+    }
+
+    function renderDashboard() {
+      const mes = document.getElementById("filtro-mes").value;
+      const fecha = document.getElementById("filtro-fecha").value;
+      const obra = document.getElementById("filtro-obra").value;
+
+      const estadosPorId = {};
+      DB.matriculados.forEach(m => {
+        estadosPorId[String(m.ID).trim()] = normalizarEstado(m.Estado);
+      });
+
+      const asisFiltrada = DB.asistencia.filter(r => {
+        const m = mesClave(r.Anio_Mes, r.Fecha);
+        const f = claveFecha(r.Fecha);
+        if (mes !== "TODOS" && m !== mes) return false;
+        if (fecha !== "TODAS" && f !== fecha) return false;
+        if (obra !== "TODAS" && normalizarObraTexto(r.Obra) !== obra) return false;
+        return true;
+      });
+
+      const evangFiltrada = DB.evangelismo.filter(r => {
+        const m = mesClave(r.Anio_Mes, r.Fecha);
+        const f = claveFecha(r.Fecha);
+        if (mes !== "TODOS" && m !== mes) return false;
+        if (fecha !== "TODAS" && f !== fecha) return false;
+        if (obra !== "TODAS" && normalizarObraTexto(r.Obra) !== obra) return false;
+        return true;
+      });
+
+      const asisActivos = asisFiltrada.filter(r => estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo");
+
+      const pres = asisActivos.filter(r => Number(r.Codigo) === 1).length;
+      const just = asisActivos.filter(r => Number(r.Codigo) === 2).length;
+      const inj = asisActivos.filter(r => Number(r.Codigo) === 0).length;
+
+      const fechasConsideradas = [...new Set([
+        ...asisFiltrada.map(r => claveFecha(r.Fecha)),
+        ...evangFiltrada.map(r => claveFecha(r.Fecha))
+      ].filter(Boolean))];
+
+      const vis = fechasConsideradas.reduce((acc, fIso) => acc + obtenerVisitasPorObraYFecha(fIso, obra), 0);
+
+      const totalReg = pres + just + inj;
+      const pct = totalReg > 0 ? Math.round((pres / totalReg) * 100) : 0;
+
+      const totEvang = evangFiltrada.reduce((acc, r) => acc + (Number(r.Evangelizados) || 0), 0);
+      const totTrat = evangFiltrada.reduce((acc, r) => acc + (Number(r.Tratados_Entregados) || 0), 0);
+      const activos = DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo" && (obra === "TODAS" || normalizarObraTexto(m.Obra) === obra)).length;
+
+      document.getElementById("kpi-presentes").textContent = pres;
+      document.getElementById("kpi-pct-asistencia").textContent = `${pct}%`;
+      document.getElementById("kpi-evangelizados").textContent = totEvang;
+      document.getElementById("kpi-tratados").textContent = totTrat;
+      document.getElementById("kpi-just").textContent = just;
+      document.getElementById("kpi-injust").textContent = inj;
+      document.getElementById("kpi-visitas").textContent = vis;
+      document.getElementById("kpi-activos").textContent = activos;
+
+      const groupKey = mes === "TODOS" ? "MES" : "FECHA";
+      const unidadRef = groupKey === "MES" ? "mes anterior" : "semana anterior";
+
+      const claves = [...new Set([
+        ...DB.asistencia
+          .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra))
+          .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)),
+        ...DB.evangelismo
+          .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra))
+          .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha))
+      ].filter(Boolean))].sort();
+
+      const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c);
+      const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;
+
+      const seriePres = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 1
+      ).length);
+
+      const serieJust = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 2
+      ).length);
+
+      const serieInj = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 0
+      ).length);
+
+      const serieEv = claves.map(c => DB.evangelismo
+        .filter(r => coincideClave(r, c) && (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra))
+        .reduce((a, b) => a + (Number(b.Evangelizados) || 0), 0));
+
+      const serieTr = claves.map(c => DB.evangelismo
+        .filter(r => coincideClave(r, c) && (obra === "TODAS" || normalizarObraTexto(r.Obra) === obra))
+        .reduce((a, b) => a + (Number(b.Tratados_Entregados) || 0), 0));
+
+      const fmtDelta = (arr, unidad) => {
+        if (arr.length < 2) return `vs. ${unidadRef}: —`;
+        const diff = arr[arr.length - 1] - arr[arr.length - 2];
+        return diff >= 0
+          ? `▲ Subió +${diff} ${unidad} vs. ${unidadRef}`
+          : `▼ Bajó ${Math.abs(diff)} ${unidad} vs. ${unidadRef}`;
+      };
+      document.getElementById("kpi-var-asistencia").textContent = fmtDelta(seriePres, "presentes");
+      document.getElementById("kpi-var-evang").textContent = fmtDelta(serieEv, "evangelizados");
+      document.getElementById("kpi-var-tratados").textContent = fmtDelta(serieTr, "tratados");
+
+      actualizarTextoLineaEstado("linea-estado-tratados", serieTr, "tratados");
+      actualizarTextoLineaEstado("linea-estado-evang", serieEv, "evangelizados");
+      actualizarTextoLineaEstado("linea-estado-hermanos", seriePres, "presentes");
+
+      chartVarTratados = crearGraficoLineaReal("chart-var-tratados", chartVarTratados, "Tratados", serieTr, "#f97316", labels);
+      chartVarEvang = crearGraficoLineaReal("chart-var-evang", chartVarEvang, "Evangelizados", serieEv, "#2563eb", labels);
+      chartVarHermanos = crearGraficoLineaReal("chart-var-hermanos", chartVarHermanos, "Hermanos Presentes", seriePres, "#16a34a", labels);
+
+      const totalDona = pres + just + inj + vis;
+      const donaEmpty = document.getElementById("dona-empty-msg");
+      if (chartDona) chartDona.destroy();
+      if (totalDona > 0) {
+        donaEmpty.classList.add("hidden");
+        chartDona = new Chart(document.getElementById("chart-dona"), {
+          type: "doughnut",
+          data: {
+            labels: ["Presentes", "Justificadas", "Injustificadas", "Visitas"],
+            datasets: [{ data: [pres, just, inj, vis], backgroundColor: ["#16a34a", "#f59e0b", "#dc2626", "#0284c7"] }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 8, left: 4 } }
+          }
+        });
+      } else {
+        donaEmpty.classList.remove("hidden");
+      }
+
+      if (chartAsis) chartAsis.destroy();
+      chartAsis = new Chart(document.getElementById("chart-asistencia"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Presentes (1)", data: seriePres, backgroundColor: "#16a34a" },
+            { label: "F. Justificada (2)", data: serieJust, backgroundColor: "#f59e0b" },
+            { label: "F. Injustificada (0)", data: serieInj, backgroundColor: "#dc2626" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+      });
+
+      if (chartEvang) chartEvang.destroy();
+      chartEvang = new Chart(document.getElementById("chart-evangelismo"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Evangelizados", data: serieEv, backgroundColor: "#2563eb" },
+            { label: "Tratados Entregados", data: serieTr, backgroundColor: "#f97316" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderResumenSemanal(fechaElegida) {
+      const selSemana = document.getElementById("resumen-semana-select");
+      const todasFechas = [...new Set(DB.asistencia.map(a => claveFecha(a.Fecha)).filter(f => /^\d{4}-\d{2}-\d{2}$/.test(f)))].sort();
+      const fechaTarget = fechaElegida || (selSemana && selSemana.value) || (todasFechas[todasFechas.length - 1] || "");
+
+      if (selSemana && fechaTarget && selSemana.value !== fechaTarget) {
+        selSemana.value = fechaTarget;
+      }
+
+      document.getElementById("badge-fecha-resumen").textContent = fechaTarget ? fechaDMA(fechaTarget) : "—";
+      const body = document.getElementById("widget-resumen-body");
+      if (!fechaTarget) {
+        body.innerHTML = `<p class="text-slate-500 text-center py-2">Sin datos semanales aún.</p>`;
+        return;
+      }
+
+      const infoPorId = {};
+      DB.matriculados.forEach(m => {
+        infoPorId[String(m.ID).trim()] = {
+          estado: normalizarEstado(m.Estado),
+          obra: normalizarObraTexto(m.Obra)
+        };
+      });
+
+      const asisSem = DB.asistencia.filter(r => claveFecha(r.Fecha) === fechaTarget);
+      const evangSem = DB.evangelismo.filter(r => claveFecha(r.Fecha) === fechaTarget);
+
+      const asisSemActivos = asisSem.filter(r => {
+        const info = infoPorId[String(r.ID_Hermano || "").trim()];
+        return !info || info.estado !== "Inactivo";
+      });
+
+      const matriculadosTotal = DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo").length;
+      const presentes = asisSemActivos.filter(r => Number(r.Codigo) === 1);
+      const just = asisSemActivos.filter(r => Number(r.Codigo) === 2).length;
+      const injMarcadas = asisSemActivos.filter(r => Number(r.Codigo) === 0).length;
+
+      const registradosUnicos = new Set(asisSemActivos.map(r => String(r.ID_Hermano || "").trim())).size;
+      const sinRegistrar = registradosUnicos < matriculadosTotal ? Math.max(0, matriculadosTotal - registradosUnicos) : 0;
+      const faltasTotal = just + injMarcadas + sinRegistrar;
+
+      const visitas = obtenerVisitasPorObraYFecha(fechaTarget, "TODAS");
+
+      const obtenerObraRegistro
