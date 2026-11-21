@@ -144,25 +144,29 @@
         </div>
       </div>
 
+      <!-- Fila superior: Líneas de tendencia real (si subió o bajó) + Donut -->
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-8">
-          <h3 class="text-sm font-bold text-slate-800 mb-1">Estadística de Variación (Subió / Bajó vs. Periodo Anterior)</h3>
-          <p class="text-[11px] text-slate-500 mb-3">Muestra cuánto subió (+) o bajó (-) cada indicador frente al registro anterior (no es el total acumulado).</p>
+          <h3 class="text-sm font-bold text-slate-800 mb-1">Estadística de Líneas (Tratados, Evangelizados y Hermanos Presentes)</h3>
+          <p class="text-[11px] text-slate-500 mb-3">Muestra la evolución en cada fecha/mes e indica si subió (▲) o bajó (▼) frente al periodo anterior.</p>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="p-3 rounded-lg border border-orange-200 bg-orange-50/30">
-              <p class="text-xs font-bold text-orange-800 mb-2">Variación Tratados (Δ)</p>
+              <p class="text-xs font-bold text-orange-800">Tratados Entregados</p>
+              <p id="linea-estado-tratados" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
               <div class="h-52">
                 <canvas id="chart-var-tratados"></canvas>
               </div>
             </div>
             <div class="p-3 rounded-lg border border-blue-200 bg-blue-50/30">
-              <p class="text-xs font-bold text-blue-800 mb-2">Variación Evangelizados (Δ)</p>
+              <p class="text-xs font-bold text-blue-800">Evangelizados</p>
+              <p id="linea-estado-evang" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
               <div class="h-52">
                 <canvas id="chart-var-evang"></canvas>
               </div>
             </div>
             <div class="p-3 rounded-lg border border-emerald-200 bg-emerald-50/30">
-              <p class="text-xs font-bold text-emerald-800 mb-2">Variación Hermanos (Δ)</p>
+              <p class="text-xs font-bold text-emerald-800">Hermanos Presentes</p>
+              <p id="linea-estado-hermanos" class="text-[11px] font-semibold text-slate-600 mb-2">—</p>
               <div class="h-52">
                 <canvas id="chart-var-hermanos"></canvas>
               </div>
@@ -179,6 +183,7 @@
         </div>
       </div>
 
+      <!-- Fila inferior: Barras Asistencia + Barras Evangelismo -->
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-7">
           <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
@@ -302,6 +307,7 @@
     </section>
   </main>
 
+  <!-- Widgets flotantes: Resumen Semanal más alto y sin ocultar datos -->
   <div class="fixed bottom-4 right-4 z-40 w-80 space-y-2.5">
     <aside id="widget-resumen-semanal" class="bg-white rounded-xl shadow-xl border border-blue-200 overflow-hidden">
       <div class="bg-blue-950 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-resumen-body').classList.toggle('hidden')">
@@ -314,7 +320,7 @@
           <option value="">Última semana</option>
         </select>
       </div>
-      <div id="widget-resumen-body" class="p-3 max-h-60 overflow-y-auto text-[11px] space-y-1.5 bg-slate-50/70">
+      <div id="widget-resumen-body" class="p-3 max-h-[27rem] overflow-y-auto text-[11px] space-y-1.5 bg-slate-50/70">
         <p class="text-slate-500 text-center py-2">Cargando resumen...</p>
       </div>
     </aside>
@@ -327,7 +333,7 @@
         </div>
         <span id="badge-count-clases" class="bg-red-700 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
       </div>
-      <div id="widget-clases-body" class="p-3 max-h-52 overflow-y-auto space-y-2 bg-red-50/40 text-xs">
+      <div id="widget-clases-body" class="p-3 max-h-44 overflow-y-auto space-y-2 bg-red-50/40 text-xs">
         <p class="text-slate-500 text-center py-2">Ningún hermano en o por entrar a curso.</p>
       </div>
     </aside>
@@ -607,7 +613,7 @@
       return total;
     }
 
-    function crearGraficoVariacion(canvasId, instanceRef, labelText, dataArr, colorHex, labelsArr) {
+    function crearGraficoLineaReal(canvasId, instanceRef, labelText, dataArr, colorHex, labelsArr) {
       if (instanceRef) instanceRef.destroy();
       return new Chart(document.getElementById(canvasId), {
         type: "line",
@@ -620,27 +626,58 @@
             backgroundColor: colorHex,
             tension: 0.25,
             borderWidth: 2,
-            pointRadius: 3
+            pointRadius: 3.5
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  const v = ctx.parsed.y;
-                  if (v > 0) return `Subió +${v} vs. anterior`;
-                  if (v < 0) return `Bajó ${v} vs. anterior`;
-                  return `Sin cambio (0) vs. anterior`;
+                  const idx = ctx.dataIndex;
+                  const val = ctx.parsed.y;
+                  if (idx === 0) return `${labelText}: ${val}`;
+                  const prev = dataArr[idx - 1];
+                  const diff = val - prev;
+                  if (diff > 0) return `${labelText}: ${val} (▲ Subió +${diff})`;
+                  if (diff < 0) return `${labelText}: ${val} (▼ Bajó ${Math.abs(diff)})`;
+                  return `${labelText}: ${val} (Sin cambio)`;
                 }
               }
             }
           }
         }
       });
+    }
+
+    function actualizarTextoLineaEstado(elId, arr, unidad) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (!arr || arr.length === 0) {
+        el.textContent = "Sin datos";
+        return;
+      }
+      if (arr.length === 1) {
+        el.textContent = `Actual: ${arr[0]} ${unidad}`;
+        return;
+      }
+      const diff = arr[arr.length - 1] - arr[arr.length - 2];
+      if (diff > 0) {
+        el.textContent = `▲ Subió +${diff} vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-bold text-emerald-700 mb-2";
+      } else if (diff < 0) {
+        el.textContent = `▼ Bajó ${Math.abs(diff)} vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-bold text-amber-700 mb-2";
+      } else {
+        el.textContent = `Sin cambio vs. anterior (Actual: ${arr[arr.length - 1]})`;
+        el.className = "text-[11px] font-semibold text-slate-600 mb-2";
+      }
     }
 
     function renderDashboard() {
@@ -749,20 +786,19 @@
         const diff = arr[arr.length - 1] - arr[arr.length - 2];
         return diff >= 0
           ? `▲ Subió +${diff} ${unidad} vs. ${unidadRef}`
-          : `▼ Bajó ${diff} ${unidad} vs. ${unidadRef}`;
+          : `▼ Bajó ${Math.abs(diff)} ${unidad} vs. ${unidadRef}`;
       };
       document.getElementById("kpi-var-asistencia").textContent = fmtDelta(seriePres, "presentes");
       document.getElementById("kpi-var-evang").textContent = fmtDelta(serieEv, "evangelizados");
       document.getElementById("kpi-var-tratados").textContent = fmtDelta(serieTr, "tratados");
 
-      const calcDeltas = (arr) => arr.map((val, idx) => idx === 0 ? 0 : val - arr[idx - 1]);
-      const deltaTr = calcDeltas(serieTr);
-      const deltaEv = calcDeltas(serieEv);
-      const deltaPres = calcDeltas(seriePres);
+      actualizarTextoLineaEstado("linea-estado-tratados", serieTr, "tratados");
+      actualizarTextoLineaEstado("linea-estado-evang", serieEv, "evangelizados");
+      actualizarTextoLineaEstado("linea-estado-hermanos", seriePres, "presentes");
 
-      chartVarTratados = crearGraficoVariacion("chart-var-tratados", chartVarTratados, "Δ Tratados", deltaTr, "#f97316", labels);
-      chartVarEvang = crearGraficoVariacion("chart-var-evang", chartVarEvang, "Δ Evangelizados", deltaEv, "#2563eb", labels);
-      chartVarHermanos = crearGraficoVariacion("chart-var-hermanos", chartVarHermanos, "Δ Hermanos", deltaPres, "#16a34a", labels);
+      chartVarTratados = crearGraficoLineaReal("chart-var-tratados", chartVarTratados, "Tratados", serieTr, "#f97316", labels);
+      chartVarEvang = crearGraficoLineaReal("chart-var-evang", chartVarEvang, "Evangelizados", serieEv, "#2563eb", labels);
+      chartVarHermanos = crearGraficoLineaReal("chart-var-hermanos", chartVarHermanos, "Hermanos Presentes", seriePres, "#16a34a", labels);
 
       const totalDona = pres + just + inj + vis;
       const donaEmpty = document.getElementById("dona-empty-msg");
@@ -842,8 +878,12 @@
       const matriculadosTotal = DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo").length;
       const presentes = asisSemActivos.filter(r => Number(r.Codigo) === 1);
       const just = asisSemActivos.filter(r => Number(r.Codigo) === 2).length;
-      const inj = asisSemActivos.filter(r => Number(r.Codigo) === 0).length;
-      const faltasTotal = just + inj;
+      const injMarcadas = asisSemActivos.filter(r => Number(r.Codigo) === 0).length;
+
+      // Cuadra las faltas con el total de matriculados activos cuando no se registraron todos individualmente
+      const registradosUnicos = new Set(asisSemActivos.map(r => String(r.ID_Hermano || "").trim())).size;
+      const sinRegistrar = registradosUnicos < matriculadosTotal ? Math.max(0, matriculadosTotal - registradosUnicos) : 0;
+      const faltasTotal = just + injMarcadas + sinRegistrar;
 
       const visitas = obtenerVisitasPorObraYFecha(fechaTarget, "TODAS");
 
@@ -867,22 +907,24 @@
 
       body.innerHTML = `
         <p class="font-extrabold text-blue-950 uppercase border-b border-slate-200 pb-1">Asistencia Campaña General:</p>
-        <div class="flex justify-between"><span>Matriculados activos</span><b>${pad2(matriculadosTotal)}</b></div>
+        <div class="flex justify-between"><span>Matriculados</span><b>${pad2(matriculadosTotal)}</b></div>
         <div class="flex justify-between text-emerald-700 font-bold"><span>Presentes total</span><span>${pad2(presentes.length)}</span></div>
         <div class="flex justify-between text-red-700 font-bold"><span>Faltas</span><span>${pad2(faltasTotal)} (justificadas ${pad2(just)})</span></div>
-        <div class="border-t border-slate-200 pt-1 space-y-0.5">
+        <div class="border-t border-slate-200 pt-1.5 space-y-0.5">
           <div class="flex justify-between"><span>L O</span><b>${pad2(lo)}</b></div>
           <div class="flex justify-between"><span>L H</span><b>${pad2(lh)}</b></div>
           <div class="flex justify-between"><span>Belaunde</span><b>${pad2(bel)}</b></div>
           <div class="flex justify-between"><span>N A</span><b>${pad2(na)}</b></div>
           <div class="flex justify-between"><span>S J L</span><b>${pad2(sjl)}</b></div>
-          <div class="flex justify-between text-sky-700 font-semibold"><span>Visitantes</span><span>${pad2(visitas)}</span></div>
         </div>
-        <div class="border-t border-slate-200 pt-1 space-y-0.5">
+        <div class="border-t border-slate-200 pt-1.5 space-y-0.5">
+          <div class="flex justify-between text-sky-700 font-semibold"><span>Visitantes</span><span>${pad2(visitas)}</span></div>
           <div class="flex justify-between font-bold text-orange-700"><span>Tratados entregados</span><span>${tratados}</span></div>
+          <div class="flex justify-between font-extrabold text-blue-950"><span>Total de evangelizados</span><span>${evTotal}</span></div>
+        </div>
+        <div class="border-t border-dashed border-slate-300 pt-1.5 space-y-0.5">
           <div class="flex justify-between"><span>Evangelizados sede Central</span><b>${evCentral}</b></div>
           <div class="flex justify-between"><span>Evangelizados congregaciones</span><b>${evCong}</b></div>
-          <div class="flex justify-between font-extrabold text-blue-900 pt-0.5 border-t border-slate-200"><span>Total de evangelizados</span><span>${evTotal}</span></div>
         </div>
       `;
     }
