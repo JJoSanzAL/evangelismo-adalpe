@@ -140,9 +140,9 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Variación Respecto al Periodo Anterior (Subió / Bajó: Tratados, Evangelizados y Hermanos)</h3>
           <div class="h-72">
-            <canvas id="chart-asistencia"></canvas>
+            <canvas id="chart-variacion"></canvas>
           </div>
         </div>
 
@@ -156,16 +156,16 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Evangelizados y Tratados Entregados por Periodo</h3>
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
           <div class="h-64">
-            <canvas id="chart-evangelismo"></canvas>
+            <canvas id="chart-asistencia"></canvas>
           </div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Variación Respecto al Periodo Anterior (Subió / Bajó: Tratados, Evangelizados y Hermanos)</h3>
+          <h3 class="text-sm font-bold text-slate-800 mb-3">Evangelizados y Tratados Entregados por Periodo</h3>
           <div class="h-64">
-            <canvas id="chart-variacion"></canvas>
+            <canvas id="chart-evangelismo"></canvas>
           </div>
         </div>
       </div>
@@ -309,7 +309,7 @@
   </div>
 
   <script>
-    const URL_SCRIPT_FIJA = "https://script.google.com/macros/s/AKfycbwgMN-HFvPqNfGb-4LYzfekQkoivYaPKugJd80kLdf6AvpBss873mNP7EJNk26lAq2QVA/exec";
+    const URL_SCRIPT_FIJA = "https://script.google.com/macros/s/AKfycbwgMN-HFvPqNfG/exec";
     const OBRAS = ["Los Olivos", "Nuevo Amanecer", "Los Heraldos", "SJL", "Belaunde"];
     const PERIODOS_CUOTAS = ["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12","2027-01","2027-02"];
     let DB = { matriculados: [], asistencia: [], evangelismo: [], cuotas: [] };
@@ -659,43 +659,6 @@
       document.getElementById("kpi-var-evang").textContent = fmtDelta(serieEv, "evangelizados");
       document.getElementById("kpi-var-tratados").textContent = fmtDelta(serieTr, "tratados");
 
-      if (chartAsis) chartAsis.destroy();
-      chartAsis = new Chart(document.getElementById("chart-asistencia"), {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            { label: "Presentes (1)", data: seriePres, backgroundColor: "#16a34a" },
-            { label: "F. Justificada (2)", data: serieJust, backgroundColor: "#f59e0b" },
-            { label: "F. Injustificada (0)", data: serieInj, backgroundColor: "#dc2626" }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
-      });
-
-      if (chartDona) chartDona.destroy();
-      chartDona = new Chart(document.getElementById("chart-dona"), {
-        type: "doughnut",
-        data: {
-          labels: ["Presentes", "Justificadas", "Injustificadas", "Visitas"],
-          datasets: [{ data: [pres, just, inj, vis], backgroundColor: ["#16a34a", "#f59e0b", "#dc2626", "#0284c7"] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      if (chartEvang) chartEvang.destroy();
-      chartEvang = new Chart(document.getElementById("chart-evangelismo"), {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            { label: "Evangelizados", data: serieEv, backgroundColor: "#2563eb" },
-            { label: "Tratados Entregados", data: serieTr, backgroundColor: "#4f46e5" }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
       const calcDeltas = (arr) => arr.map((val, idx) => idx === 0 ? 0 : val - arr[idx - 1]);
       const deltaTr = calcDeltas(serieTr);
       const deltaEv = calcDeltas(serieEv);
@@ -707,7 +670,7 @@
         data: {
           labels,
           datasets: [
-            { label: "Δ Tratados (Subió/Bajó)", data: deltaTr, borderColor: "#4f46e5", backgroundColor: "#4f46e5", tension: 0.25, borderWidth: 2 },
+            { label: "Δ Tratados (Subió/Bajó)", data: deltaTr, borderColor: "#f97316", backgroundColor: "#f97316", tension: 0.25, borderWidth: 2 },
             { label: "Δ Evangelizados (Subió/Bajó)", data: deltaEv, borderColor: "#2563eb", backgroundColor: "#2563eb", tension: 0.25, borderWidth: 2 },
             { label: "Δ Hermanos Presentes (Subió/Bajó)", data: deltaPres, borderColor: "#16a34a", backgroundColor: "#16a34a", tension: 0.25, borderWidth: 2 }
           ]
@@ -727,6 +690,43 @@
             }
           }
         }
+      });
+
+      if (chartDona) chartDona.destroy();
+      chartDona = new Chart(document.getElementById("chart-dona"), {
+        type: "doughnut",
+        data: {
+          labels: ["Presentes", "Justificadas", "Injustificadas", "Visitas"],
+          datasets: [{ data: [pres, just, inj, vis], backgroundColor: ["#16a34a", "#f59e0b", "#dc2626", "#0284c7"] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      if (chartAsis) chartAsis.destroy();
+      chartAsis = new Chart(document.getElementById("chart-asistencia"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Presentes (1)", data: seriePres, backgroundColor: "#16a34a" },
+            { label: "F. Justificada (2)", data: serieJust, backgroundColor: "#f59e0b" },
+            { label: "F. Injustificada (0)", data: serieInj, backgroundColor: "#dc2626" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+      });
+
+      if (chartEvang) chartEvang.destroy();
+      chartEvang = new Chart(document.getElementById("chart-evangelismo"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Evangelizados", data: serieEv, backgroundColor: "#2563eb" },
+            { label: "Tratados Entregados", data: serieTr, backgroundColor: "#4f46e5" }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
       });
     }
 
