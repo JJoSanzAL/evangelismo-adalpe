@@ -15,7 +15,6 @@
 </head>
 <body class="text-slate-800 pb-24">
 
-  <!-- PANTALLA DE LOGIN / CONFIGURACIÓN -->
   <div id="login-screen" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
       <div class="text-center">
@@ -38,12 +37,10 @@
     </div>
   </div>
 
-  <!-- BOTÓN SALIR MODO PRESENTACIÓN -->
   <button id="btn-exit-pres" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-40 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg items-center gap-1 opacity-80 hover:opacity-100">
     Salir de Presentación
   </button>
 
-  <!-- ENCABEZADO -->
   <header class="bg-blue-950 text-white px-6 py-4 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
       <div>
@@ -64,7 +61,6 @@
     </div>
   </header>
 
-  <!-- NAVEGACIÓN -->
   <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-6 flex gap-6 overflow-x-auto text-sm">
       <button onclick="cambiarTab('dashboard')" id="tab-dashboard" class="py-3.5 tab-active whitespace-nowrap">1. Dashboard y Gráficos</button>
@@ -74,12 +70,8 @@
     </div>
   </nav>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <main class="max-w-7xl mx-auto px-6 py-6">
-
-    <!-- ==================== TAB 1: DASHBOARD ==================== -->
     <section id="view-dashboard" class="space-y-6">
-      <!-- Barra de Filtros -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3">
           <div>
@@ -111,7 +103,6 @@
         </div>
       </div>
 
-      <!-- Tarjetas KPI -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-600">
           <p class="text-xs font-bold text-slate-500 uppercase">Asistencia Efectiva (1)</p>
@@ -151,7 +142,6 @@
         </div>
       </div>
 
-      <!-- Gráficos Principales -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
           <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
@@ -168,7 +158,6 @@
         </div>
       </div>
 
-      <!-- Gráfico de Evangelizados y Tratados -->
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
         <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución de Evangelizados y Tratados Entregados por Fecha</h3>
         <div class="h-64">
@@ -177,7 +166,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: TOMAR ASISTENCIA ==================== -->
     <section id="view-asistencia" class="hidden space-y-6">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-wrap gap-4">
@@ -202,13 +190,11 @@
         </button>
       </div>
 
-      <!-- Evangelizados y Tratados por Obra -->
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
         <h3 class="text-sm font-bold text-slate-800 mb-3">Reporte de Evangelizados y Tratados por Obra (Esta Fecha)</h3>
         <div id="grid-evangelismo-obras" class="grid grid-cols-1 md:grid-cols-5 gap-3"></div>
       </div>
 
-      <!-- Lista de Hermanos -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
           <span class="text-xs font-bold text-slate-600 uppercase">Lista de Matriculados (1=Presente, 2=Justificada, 0=Injustificada, 3=Visita)</span>
@@ -218,7 +204,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: CUOTAS ==================== -->
     <section id="view-cuotas" class="hidden space-y-6">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
         <div>
@@ -241,7 +226,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 4: MATRICULADOS ==================== -->
     <section id="view-matriculados" class="hidden space-y-6">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
         <h3 class="text-sm font-bold text-slate-800 mb-3">Agregar Nuevo Matriculado</h3>
@@ -276,10 +260,8 @@
         </table>
       </div>
     </section>
-
   </main>
 
-  <!-- TARJETA ESQUINA INFERIOR DERECHA: EN CLASES DE EVANGELISMO -->
   <aside id="widget-clases" class="fixed bottom-4 right-4 z-40 w-80 bg-white rounded-xl shadow-xl border border-red-200 overflow-hidden">
     <div class="bg-red-900 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-clases-body').classList.toggle('hidden')">
       <div class="flex items-center gap-2">
@@ -297,7 +279,7 @@
     const OBRAS = ["Los Olivos", "Nuevo Amanecer", "Los Heraldos", "SJL", "Belaunde"];
     const PERIODOS_CUOTAS = ["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12","2027-01","2027-02"];
     let DB = { matriculados: [], asistencia: [], evangelismo: [], cuotas: [] };
-    let formState = {}; // { id_hermano: { codigo: 1, observacion: "" } }
+    let formState = {};
     let chartAsis = null, chartDona = null, chartEvang = null;
 
     window.onload = () => {
@@ -305,35 +287,45 @@
       const savedPin = localStorage.getItem("adalpe_pin");
       if (savedUrl) document.getElementById("input-url").value = savedUrl;
       if (savedPin) document.getElementById("input-pin").value = savedPin;
-      if (savedUrl && savedPin) conectarSistema();
-      
-      // Fecha por defecto: último viernes o hoy
       const hoy = new Date();
       document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
+      if (savedUrl && savedPin) conectarSistema();
     };
 
-    async function conectarSistema() {
+    function conectarSistema() {
       const url = document.getElementById("input-url").value.trim();
       const pin = document.getElementById("input-pin").value.trim();
       if (!url) return;
       localStorage.setItem("adalpe_url", url);
       localStorage.setItem("adalpe_pin", pin);
-      await cargarDatos();
+      cargarDatos();
     }
 
     function cerrarSesion() {
       document.getElementById("login-screen").classList.remove("hidden");
     }
 
-    async function cargarDatos() {
+    function cargarDatos() {
       const url = localStorage.getItem("adalpe_url");
       const pin = localStorage.getItem("adalpe_pin");
       const errEl = document.getElementById("login-error");
-      try {
-        const res = await fetch(`${url}?action=getAll&pin=${encodeURIComponent(pin)}`);
-        const data = await res.json();
-        if (data.status !== "ok") {
-          errEl.textContent = data.message || "Error de conexión";
+      errEl.classList.add("hidden");
+
+      const cbName = "adalpeCallback_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        script.remove();
+        errEl.textContent = "Tiempo agotado. Verifica que la URL termine en /exec y tenga acceso a Cualquier usuario.";
+        errEl.classList.remove("hidden");
+      }, 12000);
+
+      window[cbName] = (data) => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        if (!data || data.status !== "ok") {
+          errEl.textContent = (data && data.message) || "PIN o URL incorrectos.";
           errEl.classList.remove("hidden");
           return;
         }
@@ -345,10 +337,31 @@
         cargarFormularioFecha();
         renderCuotas();
         renderMatriculados();
-      } catch (e) {
+      };
+
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
         errEl.textContent = "No se pudo conectar. Verifica la URL de Apps Script.";
         errEl.classList.remove("hidden");
-      }
+      };
+
+      const sep = url.includes("?") ? "&" : "?";
+      script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
+      document.body.appendChild(script);
+    }
+
+    async function enviarAccion(payload) {
+      const url = localStorage.getItem("adalpe_url");
+      const pin = localStorage.getItem("adalpe_pin");
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ ...payload, pin })
+      });
+      setTimeout(() => cargarDatos(), 1200);
     }
 
     function cambiarTab(tab) {
@@ -364,13 +377,12 @@
       document.body.classList.toggle("presentation-mode");
     }
 
-    // ==================== DASHBOARD LOGIC ====================
     function inicializarFiltros() {
       const meses = [...new Set(DB.asistencia.map(a => a.Anio_Mes))].sort();
       const selMes = document.getElementById("filtro-mes");
       selMes.innerHTML = `<option value="TODOS">Todo el Año 2026</option>` +
         meses.map(m => `<option value="${m}">${m}</option>`).join("");
-      if (meses.length > 0) selMes.value = meses[meses.length - 1]; // Último mes por defecto
+      if (meses.length > 0) selMes.value = meses[meses.length - 1];
       actualizarFiltroFechas();
     }
 
@@ -412,7 +424,6 @@
 
       const totEvang = evangFiltrada.reduce((acc, r) => acc + (Number(r.Evangelizados) || 0), 0);
       const totTrat = evangFiltrada.reduce((acc, r) => acc + (Number(r.Tratados_Entregados) || 0), 0);
-
       const activos = DB.matriculados.filter(m => m.Estado === "Activo" && (obra === "TODAS" || m.Obra === obra)).length;
 
       document.getElementById("kpi-presentes").textContent = pres;
@@ -424,7 +435,6 @@
       document.getElementById("kpi-visitas").textContent = vis;
       document.getElementById("kpi-activos").textContent = activos;
 
-      // Agrupar serie temporal (por Fecha si hay mes seleccionado, o por Mes si está "TODOS")
       const groupKey = mes === "TODOS" ? "Anio_Mes" : "Fecha";
       const labels = [...new Set(DB.asistencia
         .filter(r => (mes === "TODOS" || r.Anio_Mes === mes) && (obra === "TODAS" || r.Obra === obra))
@@ -434,11 +444,9 @@
       const serieJust = labels.map(l => DB.asistencia.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 2).length);
       const serieInj  = labels.map(l => DB.asistencia.filter(r => r[groupKey] === l && (obra === "TODAS" || r.Obra === obra) && Number(r.Codigo) === 0).length);
 
-      // Comparativo automático (último punto vs penúltimo)
       if (seriePres.length >= 2) {
         const diff = seriePres[seriePres.length - 1] - seriePres[seriePres.length - 2];
-        const txt = diff >= 0 ? `▲ +${diff} vs anterior` : `▼ ${diff} vs anterior`;
-        document.getElementById("kpi-var-asistencia").textContent = txt;
+        document.getElementById("kpi-var-asistencia").textContent = diff >= 0 ? `▲ +${diff} vs anterior` : `▼ ${diff} vs anterior`;
       }
 
       if (chartAsis) chartAsis.destroy();
@@ -482,7 +490,6 @@
       });
     }
 
-    // ==================== WIDGET CLASES DE EVANGELISMO ====================
     function renderWidgetClases() {
       const enClases = DB.matriculados.filter(m => m.Estado === "En Clases");
       document.getElementById("badge-count-clases").textContent = enClases.length;
@@ -506,30 +513,22 @@
 
     async function aprobarHermano(id) {
       if (!confirm("¿Confirmas que este hermano aprobó las clases de evangelismo y vuelve a la campaña?")) return;
-      const url = localStorage.getItem("adalpe_url");
-      const pin = localStorage.getItem("adalpe_pin");
-      await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ action: "aprobarHermano", pin, id_hermano: id })
-      });
-      await cargarDatos();
+      await enviarAccion({ action: "aprobarHermano", id_hermano: id });
     }
 
-    // ==================== TOMA DE ASISTENCIA ====================
     function cargarFormularioFecha() {
       const fecha = document.getElementById("reg-fecha").value;
       formState = {};
       const existentes = DB.asistencia.filter(a => a.Fecha === fecha);
-      
+
       DB.matriculados.filter(m => m.Estado === "Activo").forEach(m => {
         const found = existentes.find(e => e.ID_Hermano === m.ID);
         formState[m.ID] = {
-          codigo: found ? Number(found.Codigo) : 1, // Por defecto Presente (1)
+          codigo: found ? Number(found.Codigo) : 1,
           observacion: found ? (found.Observacion || "") : ""
         };
       });
 
-      // Evangelismo inputs por obra
       const gridEv = document.getElementById("grid-evangelismo-obras");
       gridEv.innerHTML = OBRAS.map(o => {
         const foundEv = DB.evangelismo.find(e => e.Fecha === fecha && e.Obra === o);
@@ -628,19 +627,12 @@
         tratados: document.getElementById(`tr-${o}`).value
       }));
 
-      const url = localStorage.getItem("adalpe_url");
-      const pin = localStorage.getItem("adalpe_pin");
-      await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ action: "saveAsistencia", pin, fecha, registros, evangelismo })
-      });
+      await enviarAccion({ action: "saveAsistencia", fecha, registros, evangelismo });
       btn.disabled = false;
       btn.textContent = "Guardar Asistencia del Viernes";
-      alert("¡Asistencia y reporte guardados! Se actualizaron los contadores mensuales.");
-      await cargarDatos();
+      alert("¡Asistencia y reporte enviados a Google Sheets!");
     }
 
-    // ==================== CUOTAS (S/ 2.00) ====================
     function renderCuotas() {
       const thead = document.getElementById("cuotas-thead");
       thead.innerHTML = `<th class="px-3 py-3 sticky left-0 bg-slate-800">Hermano</th><th class="px-3 py-3">Obra</th>` +
@@ -652,7 +644,7 @@
       tbody.innerHTML = DB.cuotas.map(c => {
         let countP = 0;
         const cells = PERIODOS_CUOTAS.map(p => {
-          const isPaid = String(c[p]).trim().toUpperCase() === "P";
+          const isPaid = String(c[p] || "").trim().toUpperCase() === "P";
           if (isPaid) countP++;
           return `
             <td class="px-1.5 py-2 text-center">
@@ -681,15 +673,9 @@
       const row = DB.cuotas.find(c => c.ID_Hermano === idHermano);
       if (row) row[periodo] = pagado ? "P" : "";
       renderCuotas();
-      const url = localStorage.getItem("adalpe_url");
-      const pin = localStorage.getItem("adalpe_pin");
-      await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ action: "toggleCuota", pin, id_hermano: idHermano, periodo, pagado })
-      });
+      await enviarAccion({ action: "toggleCuota", id_hermano: idHermano, periodo, pagado });
     }
 
-    // ==================== MATRICULADOS ====================
     function renderMatriculados() {
       const tbody = document.getElementById("matriculados-tbody");
       tbody.innerHTML = DB.matriculados.map(m => `
@@ -712,14 +698,8 @@
       const nombre = document.getElementById("nuevo-nombre").value.trim();
       const obra = document.getElementById("nuevo-obra").value;
       if (!nombre) return;
-      const url = localStorage.getItem("adalpe_url");
-      const pin = localStorage.getItem("adalpe_pin");
-      await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ action: "addHermano", pin, nombre, obra })
-      });
       document.getElementById("nuevo-nombre").value = "";
-      await cargarDatos();
+      await enviarAccion({ action: "addHermano", nombre, obra });
     }
   </script>
 </body>
