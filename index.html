@@ -29,7 +29,7 @@
         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Clave de Acceso</label>
         <input id="input-pin" type="password" placeholder="Ingresa la clave" onkeydown="if(event.key==='Enter') conectarSistema()" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600" />
       </div>
-      <button onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg transition shadow">
+      <button id="btn-ingresar" onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg transition shadow">
         Ingresar
       </button>
       <p id="login-error" class="text-xs text-red-600 text-center hidden"></p>
@@ -144,7 +144,6 @@
         </div>
       </div>
 
-      <!-- Fila 1: Variación separada arriba y Dona circular a su lado (zona alta, lejos de ventanas flotantes) -->
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-2">
           <h3 class="text-sm font-bold text-slate-800 mb-1">Estadística de Variación (Subió / Bajó vs. Periodo Anterior)</h3>
@@ -180,7 +179,6 @@
         </div>
       </div>
 
-      <!-- Fila 2: Asistencia en barras y Evangelizados/Tratados por periodo (mismo ancho compacto, Tratados en naranja) -->
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-2">
           <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
@@ -346,8 +344,7 @@
     let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
 
     function getUrlActiva() {
-      const saved = localStorage.getItem("adalpe_url");
-      return (saved && saved.includes("/exec")) ? saved : URL_SCRIPT_FIJA;
+      return URL_SCRIPT_FIJA;
     }
 
     function cargarCacheVisitas() {
@@ -375,7 +372,14 @@
       }
       if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
         const [d, m, y] = s.split("-");
-        return `${y}-${m}-${d}`; } const dObj = new Date(s); if (!isNaN(dObj.getTime())) { const y = dObj.getFullYear(); const m = String(dObj.getMonth() + 1).padStart(2, "0"); const d = String(dObj.getDate()).padStart(2, "0"); return `${y}-${m}-${d}`;
+        return `${y}-${m}-${d}`;
+      }
+      const dObj = new Date(s);
+      if (!isNaN(dObj.getTime())) {
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
       }
       return s.substring(0, 10);
     }
@@ -383,7 +387,122 @@
     function fechaDMA(val) {
       const iso = claveFecha(val);
       const p = iso.split("-");
-      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val \vert{}\vert{} ""); }  function mesClave(val, fechaVal) { if (val) { const s = String(val).trim(); if (/^\d{4}-\d{2}/.test(s)) return s.substring(0, 7); } const f = claveFecha(fechaVal); if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.substring(0, 7); if (val) { const dObj = new Date(String(val).trim()); if (!isNaN(dObj.getTime())) { return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}`; } } return ""; }  function normalizarEstado(val) { return String(val \vert{}\vert{} "").trim(); }  window.onload = () => { cargarCacheVisitas(); const hoy = new Date(); document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0]; localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA); };  function conectarSistema() { const pin = document.getElementById("input-pin").value.trim(); if (!pin) return; localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA); localStorage.setItem("adalpe_pin", pin); cargarDatos(); }  function cerrarSesion() { document.getElementById("input-pin").value = ""; document.getElementById("login-screen").classList.remove("hidden"); }  function cargarDatos() { const url = getUrlActiva(); const pin = localStorage.getItem("adalpe_pin") \vert{}\vert{} document.getElementById("input-pin").value.trim(); const errEl = document.getElementById("login-error"); errEl.classList.add("hidden");  const cbName = "adalpeCallback_" + Date.now(); const script = document.createElement("script"); const timeout = setTimeout(() => { delete window[cbName]; script.remove(); errEl.textContent = "Tiempo agotado al conectar con el servidor."; errEl.classList.remove("hidden"); }, 12000);  window[cbName] = (data) => { clearTimeout(timeout); delete window[cbName]; script.remove(); if (!data \vert{}\vert{} data.status !== "ok") { errEl.textContent = (data && data.message) \vert{}\vert{} "Clave incorrecta."; errEl.classList.remove("hidden"); document.getElementById("login-screen").classList.remove("hidden"); return; } DB = data; document.getElementById("login-screen").classList.add("hidden"); try { inicializarFiltros(); renderDashboard(); poblarSelectorResumenSemanal(); renderResumenSemanal(); renderWidgetClases(); cargarFormularioFecha(); renderCuotas(); renderMatriculados(); } catch (err) { console.error("Error al renderizar:", err); } };  script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); errEl.textContent = "No se pudo conectar con la base de datos."; errEl.classList.remove("hidden"); };  const sep = url.includes("?") ? "&" : "?"; script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
+      return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(val || "");
+    }
+
+    function mesClave(val, fechaVal) {
+      if (val) {
+        const s = String(val).trim();
+        if (/^\d{4}-\d{2}/.test(s)) return s.substring(0, 7);
+      }
+      const f = claveFecha(fechaVal);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.substring(0, 7);
+      if (val) {
+        const dObj = new Date(String(val).trim());
+        if (!isNaN(dObj.getTime())) {
+          return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}`;
+        }
+      }
+      return "";
+    }
+
+    function normalizarEstado(val) {
+      return String(val || "").trim();
+    }
+
+    window.onload = () => {
+      cargarCacheVisitas();
+      const hoy = new Date();
+      document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
+      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
+    };
+
+    function conectarSistema() {
+      const pin = document.getElementById("input-pin").value.trim();
+      const errEl = document.getElementById("login-error");
+      if (!pin) {
+        errEl.textContent = "Escribe la clave (2026).";
+        errEl.classList.remove("hidden");
+        return;
+      }
+      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
+      localStorage.setItem("adalpe_pin", pin);
+      cargarDatos();
+    }
+
+    function cerrarSesion() {
+      document.getElementById("input-pin").value = "";
+      document.getElementById("login-screen").classList.remove("hidden");
+    }
+
+    function cargarDatos() {
+      const url = getUrlActiva();
+      const pin = localStorage.getItem("adalpe_pin") || document.getElementById("input-pin").value.trim();
+      const errEl = document.getElementById("login-error");
+      const btnIngresar = document.getElementById("btn-ingresar");
+      errEl.classList.add("hidden");
+      if (btnIngresar) {
+        btnIngresar.disabled = true;
+        btnIngresar.textContent = "Ingresando...";
+      }
+
+      const cbName = "adalpeCallback_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        script.remove();
+        if (btnIngresar) {
+          btnIngresar.disabled = false;
+          btnIngresar.textContent = "Ingresar";
+        }
+        errEl.textContent = "No respondió el servidor a tiempo. Revisa la implementación en Apps Script.";
+        errEl.classList.remove("hidden");
+      }, 12000);
+
+      window[cbName] = (data) => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        if (btnIngresar) {
+          btnIngresar.disabled = false;
+          btnIngresar.textContent = "Ingresar";
+        }
+        if (!data || data.status !== "ok") {
+          errEl.textContent = (data && data.message) || "Clave incorrecta.";
+          errEl.classList.remove("hidden");
+          document.getElementById("login-screen").classList.remove("hidden");
+          return;
+        }
+        DB = data;
+        document.getElementById("login-screen").classList.add("hidden");
+        try {
+          inicializarFiltros();
+          renderDashboard();
+          poblarSelectorResumenSemanal();
+          renderResumenSemanal();
+          renderWidgetClases();
+          cargarFormularioFecha();
+          renderCuotas();
+          renderMatriculados();
+        } catch (err) {
+          console.error("Error al renderizar:", err);
+        }
+      };
+
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        if (btnIngresar) {
+          btnIngresar.disabled = false;
+          btnIngresar.textContent = "Ingresar";
+        }
+        errEl.textContent = "Error de conexión con Google Apps Script.";
+        errEl.classList.remove("hidden");
+      };
+
+      const sep = url.includes("?") ? "&" : "?";
+      script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
       document.body.appendChild(script);
     }
 
@@ -426,16 +545,18 @@
 
         const sep = url.includes("?") ? "&" : "?";
         const encoded = encodeURIComponent(JSON.stringify({ ...payload, pin }));
-        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha \vert{}\vert{} "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
+        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha || "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
         document.body.appendChild(script);
       });
     }
 
     function cambiarTab(tab) {
       ["dashboard", "asistencia", "cuotas", "matriculados"].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add("hidden"); document.getElementById(`tab-${t}`).classList.remove("tab-active");
+        document.getElementById(`view-${t}`).classList.add("hidden");
+        document.getElementById(`tab-${t}`).classList.remove("tab-active");
       });
-      document.getElementById(`view-${tab}`).classList.remove("hidden"); document.getElementById(`tab-${tab}`).classList.add("tab-active");
+      document.getElementById(`view-${tab}`).classList.remove("hidden");
+      document.getElementById(`tab-${tab}`).classList.add("tab-active");
     }
 
     function togglePresentacion() {
@@ -533,7 +654,8 @@
               callbacks: {
                 label: (ctx) => {
                   const v = ctx.parsed.y;
-                  if (v > 0) return `Subió +${v} vs. anterior`; if (v < 0) return `Bajó ${v} vs. anterior`;
+                  if (v > 0) return `Subió +${v} vs. anterior`;
+                  if (v < 0) return `Bajó ${v} vs. anterior`;
                   return `Sin cambio (0) vs. anterior`;
                 }
               }
@@ -592,10 +714,64 @@
       const activos = DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo" && (obra === "TODAS" || m.Obra === obra)).length;
 
       document.getElementById("kpi-presentes").textContent = pres;
-      document.getElementById("kpi-pct-asistencia").textContent = `${pct}\%`; document.getElementById("kpi-evangelizados").textContent = totEvang; document.getElementById("kpi-tratados").textContent = totTrat; document.getElementById("kpi-just").textContent = just; document.getElementById("kpi-injust").textContent = inj; document.getElementById("kpi-visitas").textContent = vis; document.getElementById("kpi-activos").textContent = activos;  const groupKey = mes === "TODOS" ? "MES" : "FECHA"; const unidadRef = groupKey === "MES" ? "mes anterior" : "semana anterior";  const claves = [...new Set([ ...DB.asistencia .filter(r => (mes === "TODOS" \vert{}\vert{} mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra)) .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)), ...DB.evangelismo .filter(r => (mes === "TODOS" \vert{}\vert{} mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra)) .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) ].filter(Boolean))].sort();  const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c); const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;  const seriePres = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && estadosPorId[String(r.ID_Hermano \vert{}\vert{} "").trim()] !== "Inactivo" && Number(r.Codigo) === 1 ).length);  const serieJust = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && estadosPorId[String(r.ID_Hermano \vert{}\vert{} "").trim()] !== "Inactivo" && Number(r.Codigo) === 2 ).length);  const serieInj = claves.map(c => DB.asistencia.filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra) && estadosPorId[String(r.ID_Hermano \vert{}\vert{} "").trim()] !== "Inactivo" && Number(r.Codigo) === 0 ).length);  const serieEv = claves.map(c => DB.evangelismo .filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra)) .reduce((a, b) => a + (Number(b.Evangelizados) \vert{}\vert{} 0), 0));  const serieTr = claves.map(c => DB.evangelismo .filter(r => coincideClave(r, c) && (obra === "TODAS" \vert{}\vert{} r.Obra === obra)) .reduce((a, b) => a + (Number(b.Tratados_Entregados) \vert{}\vert{} 0), 0));  const fmtDelta = (arr, unidad) => { if (arr.length < 2) return `vs. ${unidadRef}: —`;
+      document.getElementById("kpi-pct-asistencia").textContent = `${pct}%`;
+      document.getElementById("kpi-evangelizados").textContent = totEvang;
+      document.getElementById("kpi-tratados").textContent = totTrat;
+      document.getElementById("kpi-just").textContent = just;
+      document.getElementById("kpi-injust").textContent = inj;
+      document.getElementById("kpi-visitas").textContent = vis;
+      document.getElementById("kpi-activos").textContent = activos;
+
+      const groupKey = mes === "TODOS" ? "MES" : "FECHA";
+      const unidadRef = groupKey === "MES" ? "mes anterior" : "semana anterior";
+
+      const claves = [...new Set([
+        ...DB.asistencia
+          .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || r.Obra === obra))
+          .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)),
+        ...DB.evangelismo
+          .filter(r => (mes === "TODOS" || mesClave(r.Anio_Mes, r.Fecha) === mes) && (obra === "TODAS" || r.Obra === obra))
+          .map(r => groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha))
+      ].filter(Boolean))].sort();
+
+      const labels = claves.map(c => groupKey === "FECHA" ? fechaDMA(c) : c);
+      const coincideClave = (r, c) => (groupKey === "MES" ? mesClave(r.Anio_Mes, r.Fecha) : claveFecha(r.Fecha)) === c;
+
+      const seriePres = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || r.Obra === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 1
+      ).length);
+
+      const serieJust = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || r.Obra === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 2
+      ).length);
+
+      const serieInj = claves.map(c => DB.asistencia.filter(r =>
+        coincideClave(r, c) &&
+        (obra === "TODAS" || r.Obra === obra) &&
+        estadosPorId[String(r.ID_Hermano || "").trim()] !== "Inactivo" &&
+        Number(r.Codigo) === 0
+      ).length);
+
+      const serieEv = claves.map(c => DB.evangelismo
+        .filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra))
+        .reduce((a, b) => a + (Number(b.Evangelizados) || 0), 0));
+
+      const serieTr = claves.map(c => DB.evangelismo
+        .filter(r => coincideClave(r, c) && (obra === "TODAS" || r.Obra === obra))
+        .reduce((a, b) => a + (Number(b.Tratados_Entregados) || 0), 0));
+
+      const fmtDelta = (arr, unidad) => {
+        if (arr.length < 2) return `vs. ${unidadRef}: —`;
         const diff = arr[arr.length - 1] - arr[arr.length - 2];
         return diff >= 0
-          ? `▲ Subió +${diff}${unidad} vs. ${unidadRef}` : `▼ Bajó ${diff} ${unidad} vs.${unidadRef}`;
+          ? `▲ Subió +${diff} ${unidad} vs. ${unidadRef}`
+          : `▼ Bajó ${diff} ${unidad} vs. ${unidadRef}`;
       };
       document.getElementById("kpi-var-asistencia").textContent = fmtDelta(seriePres, "presentes");
       document.getElementById("kpi-var-evang").textContent = fmtDelta(serieEv, "evangelizados");
@@ -711,7 +887,7 @@
         <p class="font-extrabold text-blue-950 uppercase border-b border-slate-200 pb-1">Asistencia Campaña General:</p>
         <div class="flex justify-between"><span>Matriculados activos</span><b>${pad2(matriculadosTotal)}</b></div>
         <div class="flex justify-between text-emerald-700 font-bold"><span>Presentes total</span><span>${pad2(presentes.length)}</span></div>
-        <div class="flex justify-between text-red-700 font-bold"><span>Faltas</span><span>${pad2(faltasTotal)} (justificadas${pad2(just)})</span></div>
+        <div class="flex justify-between text-red-700 font-bold"><span>Faltas</span><span>${pad2(faltasTotal)} (justificadas ${pad2(just)})</span></div>
         <div class="border-t border-slate-200 pt-1 space-y-0.5">
           <div class="flex justify-between"><span>L O</span><b>${pad2(lo)}</b></div>
           <div class="flex justify-between"><span>L H</span><b>${pad2(lh)}</b></div>
@@ -755,7 +931,7 @@
           <div class="bg-white p-2.5 rounded-lg border border-red-200 flex items-center justify-between gap-2 shadow-sm">
             <div>
               <p class="font-bold text-slate-900">${m.Nombres_Apellidos}</p>
-              <p class="text-[11px] text-red-700">${m.Obra} •${detalle}</p>
+              <p class="text-[11px] text-red-700">${m.Obra} • ${detalle}</p>
             </div>
             <button onclick="aprobarHermano('${m.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded transition">
               Aprobar
@@ -924,7 +1100,8 @@
         visitasCache[`${fecha}__${o}`] = visNum;
         return {
           obra: o,
-          evangelizados: document.getElementById(`ev-${o}`).value, tratados: document.getElementById(`tr-${o}`).value,
+          evangelizados: document.getElementById(`ev-${o}`).value,
+          tratados: document.getElementById(`tr-${o}`).value,
           visitas: visNum
         };
       });
@@ -953,5 +1130,110 @@
           if (isPaid) countP++;
           return `
             <td class="px-1.5 py-2 text-center">
-              <button onclick="toggleCuota('${c.ID_Hermano}', '${p}',${!isPaid})"
-                class="w-7 h-7 rounded font-bold transition ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200
+              <button onclick="toggleCuota('${c.ID_Hermano}', '${p}', ${!isPaid})"
+                class="w-7 h-7 rounded font-bold transition ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
+                ${isPaid ? 'P' : '·'}
+              </button>
+            </td>
+          `;
+        }).join("");
+        const monto = countP * 2;
+        totalGlobal += monto;
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="px-3 py-2 font-semibold sticky left-0 bg-white">${c.Nombres_Apellidos}</td>
+            <td class="px-3 py-2 text-slate-500">${c.Obra}</td>
+            ${cells}
+            <td class="px-3 py-2 text-right font-bold text-emerald-700">S/ ${monto.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join("");
+      document.getElementById("total-recaudado-global").textContent = `S/ ${totalGlobal.toFixed(2)}`;
+    }
+
+    async function toggleCuota(idHermano, periodo, pagado) {
+      const row = DB.cuotas.find(c => c.ID_Hermano === idHermano);
+      if (row) row[periodo] = pagado ? "P" : "";
+      renderCuotas();
+      await enviarAccion({ action: "toggleCuota", id_hermano: idHermano, periodo, pagado });
+    }
+
+    function obtenerMotivoHermano(m, inj, just) {
+      const est = normalizarEstado(m.Estado);
+      const motivoSheet = String(m.Motivo_Clases || "").trim();
+      if (est === "Inactivo") return "Inactivo (no computa faltas; si asiste es visita)";
+      if (est === "En Clases") return motivoSheet || "En curso de evangelismo";
+      if (inj >= 3) return "Alcanzó 3 faltas injust. → Debe entrar a curso";
+      if (just >= 4) return "Alcanzó 4 faltas just. → Debe entrar a curso";
+      if (inj === 2) return "2 faltas injust. (1 más entra a curso)";
+      if (just >= 3) return `${just} faltas just. (${4 - just} más entra a curso)`;
+      if (inj === 1) return "1 falta injust. (2 más entra a curso)";
+      if (just > 0) return `${just} falta(s) just. (${4 - just} para límite de curso)`;
+      return motivoSheet || "Sin faltas en el mes";
+    }
+
+    function renderMatriculados() {
+      const tbody = document.getElementById("matriculados-tbody");
+      tbody.innerHTML = DB.matriculados.map(m => {
+        const est = normalizarEstado(m.Estado);
+        const inj = Number(m.Injustificadas_Mes_Actual) || 0;
+        const just = Number(m.Justificadas_Mes_Actual) || 0;
+
+        const badgeEst = est === "Activo"
+          ? "bg-emerald-100 text-emerald-800"
+          : est === "En Clases"
+            ? "bg-red-100 text-red-800"
+            : "bg-slate-200 text-slate-600";
+
+        let faltasHtml;
+        if (est === "Inactivo") {
+          faltasHtml = `<span class="text-slate-400 italic">No aplica (Inactivo)</span>`;
+        } else {
+          const clsInj = inj === 0
+            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+            : inj === 1
+              ? "bg-amber-100 text-amber-800 border-amber-300"
+              : "bg-red-100 text-red-800 border-red-300";
+
+          const clsJust = just === 0
+            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+            : (just === 1 || just === 2)
+              ? "bg-amber-100 text-amber-800 border-amber-300"
+              : "bg-red-100 text-red-800 border-red-300";
+
+          faltasHtml = `
+            <span class="inline-block px-2 py-0.5 rounded border font-bold ${clsInj}">Injust: ${inj}</span>
+            <span class="mx-1 text-slate-400">|</span>
+            <span class="inline-block px-2 py-0.5 rounded border font-bold ${clsJust}">Just: ${just}</span>
+          `;
+        }
+
+        const motivoTexto = obtenerMotivoHermano(m, inj, just);
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-2.5 font-mono text-slate-500">${m.ID}</td>
+            <td class="px-4 py-2.5 font-semibold">${m.Nombres_Apellidos}</td>
+            <td class="px-4 py-2.5">${m.Obra}</td>
+            <td class="px-4 py-2.5">
+              <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${badgeEst}">
+                ${est}
+              </span>
+            </td>
+            <td class="px-4 py-2.5">${faltasHtml}</td>
+            <td class="px-4 py-2.5 text-slate-600">${motivoTexto}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function agregarHermano() {
+      const nombre = document.getElementById("nuevo-nombre").value.trim();
+      const obra = document.getElementById("nuevo-obra").value;
+      if (!nombre) return;
+      document.getElementById("nuevo-nombre").value = "";
+      await enviarAccion({ action: "addHermano", nombre, obra });
+    }
+  </script>
+</body>
+</html>
