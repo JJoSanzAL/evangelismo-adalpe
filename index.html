@@ -145,7 +145,7 @@
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-8">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-12">
           <h3 class="text-sm font-bold text-slate-800 mb-1">Estadística de Líneas (Tratados, Evangelizados y Hermanos Presentes)</h3>
           <p class="text-[11px] text-slate-500 mb-3">Muestra la evolución en cada fecha/mes e indica si subió (▲) o bajó (▼) frente al periodo anterior.</p>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -172,28 +172,40 @@
             </div>
           </div>
         </div>
-
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-4 mr-2">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Distribución del Periodo (Circular)</h3>
-          <div class="relative h-64 flex items-center justify-center px-2">
-            <canvas id="chart-dona"></canvas>
-            <p id="dona-empty-msg" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-medium">Sin registros en este filtro para graficar.</p>
-          </div>
-        </div>
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-7">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Evolución Semanal / Mensual de Asistencia (Barras)</h3>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-5">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">
+            Evolución Semanal / Mensual de Asistencia (Barras)
+          </h3>
           <div class="h-64">
             <canvas id="chart-asistencia"></canvas>
           </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-5 mr-2">
-          <h3 class="text-sm font-bold text-slate-800 mb-3">Evangelizados y Tratados por Periodo</h3>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-4">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">
+            Evangelizados y Tratados por Periodo
+          </h3>
           <div class="h-64">
             <canvas id="chart-evangelismo"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 xl:col-span-3">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">
+            Distribución del Periodo (Circular)
+          </h3>
+
+          <div class="relative h-64 flex items-center justify-center px-2">
+            <canvas id="chart-dona"></canvas>
+
+            <p
+              id="dona-empty-msg"
+              class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-medium">
+              Sin registros en este filtro para graficar.
+            </p>
           </div>
         </div>
       </div>
