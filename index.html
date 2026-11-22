@@ -351,6 +351,15 @@
       return URL_SCRIPT_FIJA;
     }
 
+    function normalizarDB(data) {
+      return {
+        matriculados: Array.isArray(data?.matriculados) ? data.matriculados : [],
+        asistencia: Array.isArray(data?.asistencia) ? data.asistencia : [],
+        evangelismo: Array.isArray(data?.evangelismo) ? data.evangelismo : [],
+        cuotas: Array.isArray(data?.cuotas) ? data.cuotas : []
+      };
+    }
+
     function cargarCacheVisitas() {
       try {
         const raw = localStorage.getItem("adalpe_visitas_cache");
@@ -513,10 +522,10 @@
         finalizado = true;
         limpiar();
         if (!document.getElementById("login-screen").classList.contains("hidden")) {
-          errEl.textContent = "El servidor tardó en responder. Verifica tu conexión o vuelve a pulsar Ingresar.";
+          errEl.innerHTML = 'No hubo respuesta JSONP del script. Verifica que la implementación web tenga acceso <b>"Cualquier usuario"</b> y devuelva <code>callback(...)</code>.';
           errEl.classList.remove("hidden");
         }
-      }, 15000);
+      }, 8000);
 
       window[cbName] = (data) => {
         if (finalizado) return;
@@ -524,13 +533,13 @@
         limpiar();
 
         if (!data || data.status !== "ok") {
-          errEl.textContent = (data && data.message) || "Clave incorrecta.";
+          errEl.textContent = (data && data.message) || "Clave incorrecta o acceso denegado.";
           errEl.classList.remove("hidden");
           document.getElementById("login-screen").classList.remove("hidden");
           return;
         }
 
-        DB = data;
+        DB = normalizarDB(data);
         document.getElementById("login-screen").classList.add("hidden");
         try {
           inicializarFiltros();
@@ -551,7 +560,7 @@
         finalizado = true;
         limpiar();
         if (!document.getElementById("login-screen").classList.contains("hidden")) {
-          errEl.textContent = "No se pudo conectar con el servicio de Google Sheets.";
+          errEl.textContent = "No se pudo conectar con Google Apps Script. Revisa la URL o los permisos del despliegue.";
           errEl.classList.remove("hidden");
         }
       };
