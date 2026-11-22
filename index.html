@@ -346,6 +346,7 @@
     let chartAsis = null, chartDona = null, chartEvang = null;
     let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
     let activeLoginTimeout = null;
+    window.resumenCopiar = "";
 
     function getUrlActiva() {
       return URL_SCRIPT_FIJA;
@@ -941,6 +942,7 @@
       document.getElementById("badge-fecha-resumen").textContent = fechaTarget ? fechaDMA(fechaTarget) : "—";
       const body = document.getElementById("widget-resumen-body");
       if (!fechaTarget) {
+        window.resumenCopiar = "";
         body.innerHTML = `<p class="text-slate-500 text-center py-2">Sin datos semanales aún.</p>`;
         return;
       }
@@ -992,6 +994,27 @@
         .reduce((acc, r) => acc + (Number(r.Evangelizados) || 0), 0);
       const evTotal = evCentral + evCong;
 
+      window.resumenCopiar = `
+ASISTENCIA CAMPAÑA GENERAL
+
+Matriculados: ${matriculadosTotal}
+Presentes total: ${presentes.length}
+Faltas: ${faltasTotal} (justificadas ${just})
+
+LO: ${lo}
+LH: ${lh}
+Belaunde: ${bel}
+NA: ${na}
+SJL: ${sjl}
+
+Visitantes: ${visitas}
+Tratados entregados: ${tratados}
+Total evangelizados: ${evTotal}
+
+Evangelizados sede Central: ${evCentral}
+Evangelizados congregaciones: ${evCong}
+`.trim();
+
       const pad2 = (n) => String(n).padStart(2, "0");
 
       body.innerHTML = `
@@ -1031,23 +1054,17 @@
     }
 
     function copiarResumenSemanal() {
-      const texto =
-        document.getElementById("widget-resumen-body")
-          .innerText
-          .replace(/\n\s+\n/g, "\n");
+      navigator.clipboard.writeText(window.resumenCopiar || "");
 
-      navigator.clipboard.writeText(texto)
-        .then(() => {
-          const btn = document.getElementById("btn-copiar-resumen");
-          btn.innerHTML = "✅";
-          setTimeout(() => {
-            btn.innerHTML = "📋";
-          }, 1500);
-        })
-        .catch(err => {
-          console.error(err);
-          alert("No se pudo copiar.");
-        });
+      const btn = document.getElementById("btn-copiar-resumen");
+
+      if (btn) {
+        btn.innerHTML = "✅";
+
+        setTimeout(() => {
+          btn.innerHTML = "📋";
+        }, 1500);
+      }
     }
 
     function obtenerListaCurso() {
