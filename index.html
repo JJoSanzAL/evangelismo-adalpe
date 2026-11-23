@@ -907,7 +907,27 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { right: 8, left: 4 } }
+            layout: {
+              padding: {
+                right: 4,
+                left: 2,
+                top: 0,
+                bottom: 0
+              }
+            },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  boxWidth: 10,
+                  boxHeight: 8,
+                  padding: 8,
+                  font: {
+                    size: 9
+                  }
+                }
+              }
+            }
           }
         });
       } else {
