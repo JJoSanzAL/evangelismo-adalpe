@@ -2,23 +2,56 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Campaña Evangelizadora ADALPE — Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f1f5f9; }
-    .tab-active { border-bottom: 3px solid #1e3a8a; color: #1e3a8a; font-weight: 700; }
-    .presentation-mode header, .presentation-mode nav { display: none !important; }
-    .presentation-mode #btn-exit-pres { display: flex !important; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      -webkit-text-size-adjust: 100%;
+    }
+    .tab-active {
+      border-bottom: 3px solid #1e3a8a;
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+    .presentation-mode header,
+    .presentation-mode nav {
+      display: none !important;
+    }
+    .presentation-mode #btn-exit-pres {
+      display: flex !important;
+    }
     @media (min-width: 1024px) {
-      .main-safe-area { padding-right: 22.5rem; }
+      .main-safe-area {
+        padding-right: 22.5rem;
+        padding-bottom: 13rem;
+      }
+      .mobile-widgets-stack {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        width: 20rem;
+        z-index: 40;
+      }
+    }
+    @media (max-width: 1023px) {
+      .mobile-widgets-stack {
+        position: static;
+        width: 100%;
+        padding: 0 1rem 2rem 1rem;
+      }
     }
   </style>
 </head>
-<body class="text-slate-800 pb-52">
+<body class="text-slate-800">
 
-  <div id="login-screen" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+  <div id="login-screen" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
       <div class="text-center">
         <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full mb-2">ADALPE • CONTROL EVANGELÍSTICO</span>
@@ -27,33 +60,42 @@
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Clave de Acceso</label>
-        <input id="input-pin" type="password" placeholder="Ingresa la clave" onkeydown="if(event.key==='Enter') conectarSistema()" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600" />
+        <input
+          id="input-pin"
+          type="password"
+          inputmode="text"
+          autocapitalize="off"
+          autocomplete="current-password"
+          placeholder="Ingresa la clave"
+          onkeydown="if(event.key==='Enter') conectarSistema()"
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-base text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
       </div>
-      <button id="btn-ingresar" type="button" onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg transition shadow">
+      <button id="btn-ingresar" type="button" onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white font-semibold py-3 rounded-lg transition shadow">
         Ingresar
       </button>
       <p id="login-error" class="text-xs text-red-600 text-center hidden"></p>
     </div>
   </div>
 
-  <button id="btn-exit-pres" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-40 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg items-center gap-1 opacity-80 hover:opacity-100">
+  <button id="btn-exit-pres" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-40 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg items-center gap-1 opacity-90 hover:opacity-100">
     Salir de Presentación
   </button>
 
-  <header class="bg-blue-950 text-white px-6 py-4 shadow-md">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+  <header class="bg-blue-950 text-white px-4 sm:px-6 py-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 class="text-xl font-bold tracking-tight">Campaña Evangelizadora — ADALPE</h1>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight">Campaña Evangelizadora — ADALPE</h1>
         <p class="text-xs text-blue-200">Panel de Control, Asistencia, Evangelismo y Cuotas</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="cargarDatos()" class="bg-blue-800 hover:bg-blue-700 text-xs px-3 py-2 rounded-lg font-medium transition">
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="cargarDatos()" class="bg-blue-800 hover:bg-blue-700 text-xs px-3 py-2 rounded-lg font-medium transition">
           Actualizar Datos
         </button>
-        <button onclick="togglePresentacion()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-2 rounded-lg font-semibold transition shadow">
+        <button type="button" onclick="togglePresentacion()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-2 rounded-lg font-semibold transition shadow">
           Modo Presentación
         </button>
-        <button onclick="cerrarSesion()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded-lg transition">
+        <button type="button" onclick="cerrarSesion()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded-lg transition">
           Bloquear
         </button>
       </div>
@@ -61,33 +103,33 @@
   </header>
 
   <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-6 flex gap-6 overflow-x-auto text-sm">
-      <button onclick="cambiarTab('dashboard')" id="tab-dashboard" class="py-3.5 tab-active whitespace-nowrap">1. Dashboard y Gráficos</button>
-      <button onclick="cambiarTab('asistencia')" id="tab-asistencia" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">2. Tomar Asistencia (Viernes)</button>
-      <button onclick="cambiarTab('cuotas')" id="tab-cuotas" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">3. Cuotas (S/ 2.00)</button>
-      <button onclick="cambiarTab('matriculados')" id="tab-matriculados" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">4. Matriculados</button>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-5 overflow-x-auto text-sm">
+      <button type="button" onclick="cambiarTab('dashboard')" id="tab-dashboard" class="py-3.5 tab-active whitespace-nowrap">1. Dashboard y Gráficos</button>
+      <button type="button" onclick="cambiarTab('asistencia')" id="tab-asistencia" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">2. Tomar Asistencia (Viernes)</button>
+      <button type="button" onclick="cambiarTab('cuotas')" id="tab-cuotas" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">3. Cuotas (S/ 2.00)</button>
+      <button type="button" onclick="cambiarTab('matriculados')" id="tab-matriculados" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">4. Matriculados</button>
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-6 py-6 main-safe-area">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 main-safe-area">
     <section id="view-dashboard" class="space-y-6">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-3">
-          <div>
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div class="w-full sm:w-auto">
             <label class="block text-[11px] font-bold text-slate-500 uppercase">Periodo (Mes)</label>
-            <select id="filtro-mes" onchange="actualizarFiltroFechas(); renderDashboard();" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+            <select id="filtro-mes" onchange="actualizarFiltroFechas(); renderDashboard();" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
               <option value="TODOS">Todo el Año 2026</option>
             </select>
           </div>
-          <div>
+          <div class="w-full sm:w-auto">
             <label class="block text-[11px] font-bold text-slate-500 uppercase">Viernes Específico</label>
-            <select id="filtro-fecha" onchange="renderDashboard()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+            <select id="filtro-fecha" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
               <option value="TODAS">Todas las semanas del periodo</option>
             </select>
           </div>
-          <div>
+          <div class="w-full sm:w-auto">
             <label class="block text-[11px] font-bold text-slate-500 uppercase">Obra / Sector</label>
-            <select id="filtro-obra" onchange="renderDashboard()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
+            <select id="filtro-obra" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50">
               <option value="TODAS">Total ADALPE (Todas)</option>
               <option value="Los Olivos">Los Olivos</option>
               <option value="Nuevo Amanecer">Nuevo Amanecer</option>
@@ -213,14 +255,14 @@
 
     <section id="view-asistencia" class="hidden space-y-6">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-end justify-between gap-4">
-        <div class="flex flex-wrap gap-4">
-          <div>
+        <div class="flex flex-wrap gap-4 w-full sm:w-auto">
+          <div class="w-full sm:w-auto">
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fecha del Viernes</label>
-            <input type="date" id="reg-fecha" onchange="cargarFormularioFecha()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" />
+            <input type="date" id="reg-fecha" onchange="cargarFormularioFecha()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" />
           </div>
-          <div>
+          <div class="w-full sm:w-auto">
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Filtrar Obra</label>
-            <select id="reg-obra" onchange="renderListaAsistencia()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <select id="reg-obra" onchange="renderListaAsistencia()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
               <option value="TODAS">Todas las Obras</option>
               <option value="Los Olivos">Los Olivos</option>
               <option value="Nuevo Amanecer">Nuevo Amanecer</option>
@@ -238,11 +280,11 @@
             <h3 class="text-sm font-bold text-slate-800">Evangelizados, Tratados y Visitas por Obra (Esta Fecha)</h3>
             <p class="text-xs text-slate-500">Ingresa el número de visitas por obra (ej. 3 en SJL) para sumarlas en el Resumen Semanal y estadísticas.</p>
           </div>
-          <button onclick="guardarSoloEvangelismo()" id="btn-guardar-evang" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition">
+          <button type="button" onclick="guardarSoloEvangelismo()" id="btn-guardar-evang" class="w-full sm:w-auto bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition">
             Guardar Evangelizados, Tratados y Visitas
           </button>
         </div>
-        <div id="grid-evangelismo-obras" class="grid grid-cols-1 md:grid-cols-5 gap-3"></div>
+        <div id="grid-evangelismo-obras" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -251,7 +293,7 @@
             <span class="text-xs font-bold text-slate-600 uppercase">Lista de Matriculados Activos (1=Presente, 2=Justificada, 0=Injustificada)</span>
             <span id="contador-rapido" class="text-xs font-bold text-blue-900"></span>
           </div>
-          <button onclick="guardarSoloAsistencia()" id="btn-guardar-asis" class="bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow transition">
+          <button type="button" onclick="guardarSoloAsistencia()" id="btn-guardar-asis" class="w-full sm:w-auto bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow transition">
             Guardar Asistencia del Viernes
           </button>
         </div>
@@ -293,13 +335,13 @@
             <option value="SJL">SJL</option>
             <option value="Belaunde">Belaunde</option>
           </select>
-          <button onclick="agregarHermano()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+          <button type="button" onclick="agregarHermano()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-sm">
             + Matricular
           </button>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table class="w-full text-xs text-left">
           <thead class="bg-slate-800 text-white uppercase">
             <tr>
@@ -317,7 +359,7 @@
     </section>
   </main>
 
-  <div class="fixed bottom-4 right-4 z-40 w-80 space-y-2.5">
+  <div class="mobile-widgets-stack space-y-2.5">
     <aside id="widget-resumen-semanal" class="bg-white rounded-xl shadow-xl border border-blue-200 overflow-hidden">
       <div class="bg-blue-950 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-resumen-body').classList.toggle('hidden')">
         <span class="text-xs font-bold tracking-wide">Resumen Semanal</span>
@@ -358,10 +400,32 @@
     let chartAsis = null, chartDona = null, chartEvang = null;
     let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
     let activeLoginTimeout = null;
+    let memoriaPin = "";
     window.resumenCopiar = "";
 
     function getUrlActiva() {
       return URL_SCRIPT_FIJA;
+    }
+
+    function guardarStorageSeguro(clave, valor) {
+      try {
+        localStorage.setItem(clave, valor);
+      } catch (e) {}
+      try {
+        sessionStorage.setItem(clave, valor);
+      } catch (e) {}
+    }
+
+    function leerStorageSeguro(clave) {
+      try {
+        const v1 = localStorage.getItem(clave);
+        if (v1 !== null && v1 !== "") return v1;
+      } catch (e) {}
+      try {
+        const v2 = sessionStorage.getItem(clave);
+        if (v2 !== null && v2 !== "") return v2;
+      } catch (e) {}
+      return "";
     }
 
     function normalizarDB(data) {
@@ -375,7 +439,7 @@
 
     function cargarCacheVisitas() {
       try {
-        const raw = localStorage.getItem("adalpe_visitas_cache");
+        const raw = leerStorageSeguro("adalpe_visitas_cache");
         visitasCache = raw ? JSON.parse(raw) : {};
       } catch (e) {
         visitasCache = {};
@@ -384,7 +448,7 @@
 
     function guardarCacheVisitas() {
       try {
-        localStorage.setItem("adalpe_visitas_cache", JSON.stringify(visitasCache));
+        guardarStorageSeguro("adalpe_visitas_cache", JSON.stringify(visitasCache));
       } catch (e) {}
     }
 
@@ -457,9 +521,13 @@
       cargarCacheVisitas();
       const hoy = new Date();
       document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
-      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
+      guardarStorageSeguro("adalpe_url", URL_SCRIPT_FIJA);
+      const pinGuardado = leerStorageSeguro("adalpe_pin");
       const inp = document.getElementById("input-pin");
-      if (inp) inp.focus();
+      if (inp) {
+        if (pinGuardado) inp.value = pinGuardado;
+        inp.focus();
+      }
     };
 
     function resetBotonLogin() {
@@ -482,9 +550,10 @@
         return;
       }
 
+      memoriaPin = pin;
       errEl.classList.add("hidden");
-      localStorage.setItem("adalpe_url", URL_SCRIPT_FIJA);
-      localStorage.setItem("adalpe_pin", pin);
+      guardarStorageSeguro("adalpe_url", URL_SCRIPT_FIJA);
+      guardarStorageSeguro("adalpe_pin", pin);
 
       const btn = document.getElementById("btn-ingresar");
       if (btn) {
@@ -496,14 +565,44 @@
     }
 
     function cerrarSesion() {
+      memoriaPin = "";
+      guardarStorageSeguro("adalpe_pin", "");
       resetBotonLogin();
       document.getElementById("input-pin").value = "";
       document.getElementById("login-screen").classList.remove("hidden");
     }
 
+    function procesarDatosRecibidos(data, errEl) {
+      if (!data || data.status !== "ok") {
+        errEl.textContent = (data && data.message) || "Clave incorrecta o acceso denegado.";
+        errEl.classList.remove("hidden");
+        document.getElementById("login-screen").classList.remove("hidden");
+        return;
+      }
+
+      DB = normalizarDB(data);
+      document.getElementById("login-screen").classList.add("hidden");
+      try {
+        inicializarFiltros();
+        renderDashboard();
+        poblarSelectorResumenSemanal();
+        renderResumenSemanal();
+        renderWidgetClases();
+        cargarFormularioFecha();
+        renderCuotas();
+        renderMatriculados();
+      } catch (err) {
+        console.error("Error al renderizar:", err);
+      }
+    }
+
     function cargarDatos(pinOverride) {
       const url = getUrlActiva();
-      const pin = (pinOverride !== undefined ? pinOverride : (localStorage.getItem("adalpe_pin") || document.getElementById("input-pin").value.trim()));
+      const pin = (
+        pinOverride !== undefined
+          ? pinOverride
+          : (memoriaPin || leerStorageSeguro("adalpe_pin") || document.getElementById("input-pin").value.trim())
+      );
       const errEl = document.getElementById("login-error");
       const loginVisible = !document.getElementById("login-screen").classList.contains("hidden");
 
@@ -516,8 +615,9 @@
         activeLoginTimeout = null;
       }
 
-      const cbName = "adalpeCallback_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-      const script = document.createElement("script");
+      const sep = url.includes("?") ? "&" : "?";
+      const fetchUrl = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&_=${Date.now()}`;
+
       let finalizado = false;
 
       const limpiar = () => {
@@ -525,105 +625,139 @@
           clearTimeout(activeLoginTimeout);
           activeLoginTimeout = null;
         }
-        try { delete window[cbName]; } catch (e) {}
-        if (script.parentNode) script.remove();
         resetBotonLogin();
       };
 
-      activeLoginTimeout = setTimeout(() => {
+      const ejecutarJsonp = () => {
         if (finalizado) return;
-        finalizado = true;
-        limpiar();
-        if (!document.getElementById("login-screen").classList.contains("hidden")) {
-          errEl.innerHTML = 'No hubo respuesta JSONP del script. Verifica que la implementación web tenga acceso <b>"Cualquier usuario"</b> y devuelva <code>callback(...)</code>.';
-          errEl.classList.remove("hidden");
-        }
-      }, 8000);
+        const cbName = "adalpeCallback_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        const script = document.createElement("script");
 
-      window[cbName] = (data) => {
-        if (finalizado) return;
-        finalizado = true;
-        limpiar();
+        const limpiarScript = () => {
+          try { delete window[cbName]; } catch (e) {}
+          if (script.parentNode) script.remove();
+        };
 
-        if (!data || data.status !== "ok") {
-          errEl.textContent = (data && data.message) || "Clave incorrecta o acceso denegado.";
-          errEl.classList.remove("hidden");
-          document.getElementById("login-screen").classList.remove("hidden");
-          return;
-        }
+        activeLoginTimeout = setTimeout(() => {
+          if (finalizado) return;
+          finalizado = true;
+          limpiarScript();
+          limpiar();
+          if (!document.getElementById("login-screen").classList.contains("hidden")) {
+            errEl.textContent = "Tiempo de espera agotado al conectar. Revisa tu conexión o los permisos del script.";
+            errEl.classList.remove("hidden");
+          }
+        }, 12000);
 
-        DB = normalizarDB(data);
-        document.getElementById("login-screen").classList.add("hidden");
-        try {
-          inicializarFiltros();
-          renderDashboard();
-          poblarSelectorResumenSemanal();
-          renderResumenSemanal();
-          renderWidgetClases();
-          cargarFormularioFecha();
-          renderCuotas();
-          renderMatriculados();
-        } catch (err) {
-          console.error("Error al renderizar:", err);
-        }
+        window[cbName] = (data) => {
+          if (finalizado) return;
+          finalizado = true;
+          limpiarScript();
+          limpiar();
+          procesarDatosRecibidos(data, errEl);
+        };
+
+        script.onerror = () => {
+          if (finalizado) return;
+          finalizado = true;
+          limpiarScript();
+          limpiar();
+          if (!document.getElementById("login-screen").classList.contains("hidden")) {
+            errEl.textContent = "No se pudo conectar desde el dispositivo. Revisa la red o la URL del script.";
+            errEl.classList.remove("hidden");
+          }
+        };
+
+        script.src = `${fetchUrl}&callback=${cbName}`;
+        document.body.appendChild(script);
       };
 
-      script.onerror = () => {
-        if (finalizado) return;
-        finalizado = true;
-        limpiar();
-        if (!document.getElementById("login-screen").classList.contains("hidden")) {
-          errEl.textContent = "No se pudo conectar con Google Apps Script. Revisa la URL o los permisos del despliegue.";
-          errEl.classList.remove("hidden");
-        }
-      };
-
-      const sep = url.includes("?") ? "&" : "?";
-      script.src = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&callback=${cbName}&_=${Date.now()}`;
-      document.body.appendChild(script);
+      if (window.fetch) {
+        fetch(fetchUrl, { method: "GET", cache: "no-store" })
+          .then(res => {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.text();
+          })
+          .then(txt => {
+            if (finalizado) return;
+            const limpio = txt.trim();
+            if (limpio.startsWith("{")) {
+              finalizado = true;
+              limpiar();
+              procesarDatosRecibidos(JSON.parse(limpio), errEl);
+            } else {
+              ejecutarJsonp();
+            }
+          })
+          .catch(() => {
+            ejecutarJsonp();
+          });
+      } else {
+        ejecutarJsonp();
+      }
     }
 
     function enviarAccion(payload) {
       return new Promise((resolve) => {
         const url = getUrlActiva();
-        const pin = localStorage.getItem("adalpe_pin") || document.getElementById("input-pin").value.trim();
-        const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        const script = document.createElement("script");
-        let respFinal = { status: "ok" };
-
-        const cleanup = () => {
-          try { delete window[cbName]; } catch (e) {}
-          if (script.parentNode) script.remove();
-        };
-
-        const timer = setTimeout(() => {
-          cleanup();
-          setTimeout(() => cargarDatos(pin), 900);
-          resolve(respFinal);
-        }, 5000);
-
-        window[cbName] = (resp) => {
-          clearTimeout(timer);
-          cleanup();
-          respFinal = resp || { status: "ok" };
-          if (respFinal.status === "error") {
-            alert("Aviso al guardar: " + respFinal.message);
-          }
-          setTimeout(() => cargarDatos(pin), 900);
-          resolve(respFinal);
-        };
-
-        script.onerror = () => {
-          clearTimeout(timer);
-          cleanup();
-          setTimeout(() => cargarDatos(pin), 900);
-          resolve(respFinal);
-        };
-
+        const pin = memoriaPin || leerStorageSeguro("adalpe_pin") || document.getElementById("input-pin").value.trim();
         const sep = url.includes("?") ? "&" : "?";
         const encoded = encodeURIComponent(JSON.stringify({ ...payload, pin }));
-        script.src = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha || "")}&payload=${encoded}&callback=${cbName}&_=${Date.now()}`;
-        document.body.appendChild(script);
+        const baseUrl = `${url}${sep}action=${encodeURIComponent(payload.action)}&pin=${encodeURIComponent(pin)}&fecha=${encodeURIComponent(payload.fecha || "")}&payload=${encoded}&_=${Date.now()}`;
+
+        let resuelto = false;
+        const finalizar = (respObj) => {
+          if (resuelto) return;
+          resuelto = true;
+          setTimeout(() => cargarDatos(pin), 900);
+          resolve(respObj || { status: "ok" });
+        };
+
+        if (window.fetch) {
+          fetch(baseUrl, { method: "GET", cache: "no-store" })
+            .then(res => res.text())
+            .then(txt => {
+              const limpio = txt.trim();
+              if (limpio.startsWith("{")) {
+                const parsed = JSON.parse(limpio);
+                if (parsed.status === "error") {
+                  alert("Aviso al guardar: " + parsed.message);
+                }
+                finalizar(parsed);
+              } else {
+                finalizar({ status: "ok" });
+              }
+            })
+            .catch(() => {
+              const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+              const script = document.createElement("script");
+              const cleanup = () => {
+                try { delete window[cbName]; } catch (e) {}
+                if (script.parentNode) script.remove();
+              };
+              const timer = setTimeout(() => {
+                cleanup();
+                finalizar({ status: "ok" });
+              }, 5000);
+              window[cbName] = (resp) => {
+                clearTimeout(timer);
+                cleanup();
+                if (resp && resp.status === "error") {
+                  alert("Aviso al guardar: " + resp.message);
+                }
+                finalizar(resp || { status: "ok" });
+              };
+              script.onerror = () => {
+                clearTimeout(timer);
+                cleanup();
+                finalizar({ status: "ok" });
+              };
+              script.src = `${baseUrl}&callback=${cbName}`;
+              document.body.appendChild(script);
+            });
+        } else {
+          finalizar({ status: "ok" });
+        }
       });
     }
 
@@ -634,6 +768,7 @@
       });
       document.getElementById(`view-${tab}`).classList.remove("hidden");
       document.getElementById(`tab-${tab}`).classList.add("tab-active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function togglePresentacion() {
@@ -1056,9 +1191,10 @@ Evangelizados congregaciones: ${evCong}
           </p>
 
           <button
+            type="button"
             id="btn-copiar-resumen"
             onclick="copiarResumenSemanal()"
-            class="text-xs px-2 py-1 bg-blue-700 text-white rounded hover:bg-blue-800"
+            class="text-xs px-2.5 py-1 bg-blue-700 text-white rounded hover:bg-blue-800"
             title="Copiar resumen">
             📋
           </button>
@@ -1085,17 +1221,53 @@ Evangelizados congregaciones: ${evCong}
       `;
     }
 
-    function copiarResumenSemanal() {
-      navigator.clipboard.writeText(window.resumenCopiar || "");
-
+    function marcarBotonCopiado() {
       const btn = document.getElementById("btn-copiar-resumen");
-
       if (btn) {
         btn.innerHTML = "✅";
-
         setTimeout(() => {
           btn.innerHTML = "📋";
         }, 1500);
+      }
+    }
+
+    function copiarFallbackMovil(texto) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = texto;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "0";
+        ta.style.left = "0";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, texto.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (ok) {
+          marcarBotonCopiado();
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function copiarResumenSemanal() {
+      const texto = window.resumenCopiar || "";
+      if (!texto) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto)
+          .then(() => {
+            marcarBotonCopiado();
+          })
+          .catch(() => {
+            copiarFallbackMovil(texto);
+          });
+      } else {
+        copiarFallbackMovil(texto);
       }
     }
 
@@ -1119,7 +1291,7 @@ Evangelizados congregaciones: ${evCong}
               <p class="font-bold text-slate-900">${m.Nombres_Apellidos}</p>
               <p class="text-[11px] text-red-700">${m.Obra} • ${detalle}</p>
             </div>
-            <button onclick="aprobarHermano('${m.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded transition">
+            <button type="button" onclick="aprobarHermano('${m.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 rounded transition">
               Aprobar
             </button>
           </div>
@@ -1205,15 +1377,15 @@ Evangelizados congregaciones: ${evCong}
             <div class="grid grid-cols-3 gap-1.5">
               <div>
                 <label class="block text-[10px] text-slate-500">Evang.</label>
-                <input type="number" min="0" id="ev-${o}" value="${evVal}" placeholder="0" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
+                <input type="number" min="0" inputmode="numeric" id="ev-${o}" value="${evVal}" placeholder="0" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
               </div>
               <div>
                 <label class="block text-[10px] text-slate-500">Tratados</label>
-                <input type="number" min="0" id="tr-${o}" value="${trVal}" placeholder="0" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
+                <input type="number" min="0" inputmode="numeric" id="tr-${o}" value="${trVal}" placeholder="0" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
               </div>
               <div>
                 <label class="block text-[10px] text-sky-700 font-semibold">Visitas</label>
-                <input type="number" min="0" id="vis-${o}" value="${visVal}" placeholder="0" class="w-full border border-sky-300 bg-sky-50/50 rounded px-2 py-1 text-xs font-semibold text-sky-900" />
+                <input type="number" min="0" inputmode="numeric" id="vis-${o}" value="${visVal}" placeholder="0" class="w-full border border-sky-300 bg-sky-50/50 rounded px-2 py-1 text-xs font-semibold text-sky-900" />
               </div>
             </div>
           </div>
@@ -1234,7 +1406,7 @@ Evangelizados congregaciones: ${evCong}
       container.innerHTML = lista.map(m => {
         if (normalizarEstado(m.Estado) === "En Clases") {
           return `
-            <div class="px-5 py-3 bg-red-50/60 flex items-center justify-between gap-4 opacity-80">
+            <div class="px-4 sm:px-5 py-3 bg-red-50/60 flex flex-wrap items-center justify-between gap-2 opacity-80">
               <div>
                 <span class="text-xs font-bold text-slate-400 mr-2">${m.ID}</span>
                 <span class="text-sm font-bold text-slate-700">${m.Nombres_Apellidos}</span>
@@ -1248,24 +1420,24 @@ Evangelizados congregaciones: ${evCong}
         }
         const st = formState[m.ID] || { codigo: 1, observacion: "" };
         return `
-          <div class="px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50">
-            <div class="min-w-[220px]">
+          <div class="px-4 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50">
+            <div class="min-w-[200px]">
               <span class="text-xs font-mono text-slate-400 mr-2">${m.ID}</span>
               <span class="text-sm font-semibold text-slate-800">${m.Nombres_Apellidos}</span>
               <span class="ml-2 text-[11px] text-slate-500">(${m.Obra})</span>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex flex-wrap items-center gap-1.5">
               ${[
                 { c: 1, lbl: "1 • Presente", cls: "bg-emerald-600 text-white" },
                 { c: 2, lbl: "2 • Justif.", cls: "bg-amber-500 text-white" },
                 { c: 0, lbl: "0 • Injust.", cls: "bg-red-600 text-white" }
               ].map(btn => `
                 <button type="button" onclick="setCodigo('${m.ID}', ${btn.c})"
-                  class="px-2.5 py-1 rounded text-xs font-bold border transition ${st.codigo === btn.c ? btn.cls + ' border-transparent shadow-sm' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}">
+                  class="px-2.5 py-1.5 rounded text-xs font-bold border transition ${st.codigo === btn.c ? btn.cls + ' border-transparent shadow-sm' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}">
                   ${btn.lbl}
                 </button>
               `).join("")}
-              <input type="text" value="${st.observacion}" onchange="setObs('${m.ID}', this.value)" placeholder="Nota..." class="ml-2 border border-slate-200 rounded px-2 py-1 text-xs w-32" />
+              <input type="text" value="${st.observacion}" onchange="setObs('${m.ID}', this.value)" placeholder="Nota..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full sm:w-32 mt-1 sm:mt-0 sm:ml-2" />
             </div>
           </div>
         `;
@@ -1349,7 +1521,7 @@ Evangelizados congregaciones: ${evCong}
           if (isPaid) countP++;
           return `
             <td class="px-1.5 py-2 text-center">
-              <button onclick="toggleCuota('${c.ID_Hermano}', '${p}', ${!isPaid})"
+              <button type="button" onclick="toggleCuota('${c.ID_Hermano}', '${p}', ${!isPaid})"
                 class="w-7 h-7 rounded font-bold transition ${isPaid ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
                 ${isPaid ? 'P' : '·'}
               </button>
