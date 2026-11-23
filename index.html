@@ -572,6 +572,17 @@
       document.getElementById("login-screen").classList.remove("hidden");
     }
 
+    function extraerJsonDeRespuesta(rawText) {
+      const txt = String(rawText || "").trim();
+      if (!txt) return null;
+      if (txt.startsWith("{")) return JSON.parse(txt);
+      const match = txt.match(/^[a-zA-Z0-9_.$]+\s*\(([\s\S]*)\)\s*;?\s*$/);
+      if (match && match[1]) {
+        return JSON.parse(match[1]);
+      }
+      return null;
+    }
+
     function procesarDatosRecibidos(data, errEl) {
       if (!data || data.status !== "ok") {
         errEl.textContent = (data && data.message) || "Clave incorrecta o acceso denegado.";
@@ -616,8 +627,7 @@
       }
 
       const sep = url.includes("?") ? "&" : "?";
-      const fetchUrl = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&_=${Date.now()}`;
-
+      const baseQuery = `${url}${sep}action=getAll&pin=${encodeURIComponent(pin)}&_=${Date.now()}`;
       let finalizado = false;
 
       const limpiar = () => {
@@ -644,7 +654,7 @@
           limpiarScript();
           limpiar();
           if (!document.getElementById("login-screen").classList.contains("hidden")) {
-            errEl.textContent = "Tiempo de espera agotado al conectar. Revisa tu conexión o los permisos del script.";
+            errEl.textContent = "Tiempo de espera agotado. Si estás en el navegador interno de una app, ábrelo en Safari.";
             errEl.classList.remove("hidden");
           }
         }, 12000);
@@ -663,28 +673,33 @@
           limpiarScript();
           limpiar();
           if (!document.getElementById("login-screen").classList.contains("hidden")) {
-            errEl.textContent = "No se pudo conectar desde el dispositivo. Revisa la red o la URL del script.";
+            errEl.textContent = "El navegador bloqueó la conexión. Ábrelo directamente en Safari y verifica que el script esté público.";
             errEl.classList.remove("hidden");
           }
         };
 
-        script.src = `${fetchUrl}&callback=${cbName}`;
+        script.src = `${baseQuery}&callback=${cbName}`;
         document.body.appendChild(script);
       };
 
       if (window.fetch) {
-        fetch(fetchUrl, { method: "GET", cache: "no-store" })
+        fetch(baseQuery, {
+          method: "GET",
+          cache: "no-store",
+          credentials: "omit",
+          referrerPolicy: "no-referrer"
+        })
           .then(res => {
             if (!res.ok) throw new Error("HTTP " + res.status);
             return res.text();
           })
           .then(txt => {
             if (finalizado) return;
-            const limpio = txt.trim();
-            if (limpio.startsWith("{")) {
+            const parsed = extraerJsonDeRespuesta(txt);
+            if (parsed) {
               finalizado = true;
               limpiar();
-              procesarDatosRecibidos(JSON.parse(limpio), errEl);
+              procesarDatosRecibidos(parsed, errEl);
             } else {
               ejecutarJsonp();
             }
@@ -713,50 +728,58 @@
           resolve(respObj || { status: "ok" });
         };
 
+        const intentarJsonpAccion = () => {
+          const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+          const script = document.createElement("script");
+          const cleanup = () => {
+            try { delete window[cbName]; } catch (e) {}
+            if (script.parentNode) script.remove();
+          };
+          const timer = setTimeout(() => {
+            cleanup();
+            finalizar({ status: "ok" });
+          }, 5000);
+          window[cbName] = (resp) => {
+            clearTimeout(timer);
+            cleanup();
+            if (resp && resp.status === "error") {
+              alert("Aviso al guardar: " + resp.message);
+            }
+            finalizar(resp || { status: "ok" });
+          };
+          script.onerror = () => {
+            clearTimeout(timer);
+            cleanup();
+            finalizar({ status: "ok" });
+          };
+          script.src = `${baseUrl}&callback=${cbName}`;
+          document.body.appendChild(script);
+        };
+
         if (window.fetch) {
-          fetch(baseUrl, { method: "GET", cache: "no-store" })
+          fetch(baseUrl, {
+            method: "GET",
+            cache: "no-store",
+            credentials: "omit",
+            referrerPolicy: "no-referrer"
+          })
             .then(res => res.text())
             .then(txt => {
-              const limpio = txt.trim();
-              if (limpio.startsWith("{")) {
-                const parsed = JSON.parse(limpio);
+              const parsed = extraerJsonDeRespuesta(txt);
+              if (parsed) {
                 if (parsed.status === "error") {
                   alert("Aviso al guardar: " + parsed.message);
                 }
                 finalizar(parsed);
               } else {
-                finalizar({ status: "ok" });
+                intentarJsonpAccion();
               }
             })
             .catch(() => {
-              const cbName = "adalpeSaveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-              const script = document.createElement("script");
-              const cleanup = () => {
-                try { delete window[cbName]; } catch (e) {}
-                if (script.parentNode) script.remove();
-              };
-              const timer = setTimeout(() => {
-                cleanup();
-                finalizar({ status: "ok" });
-              }, 5000);
-              window[cbName] = (resp) => {
-                clearTimeout(timer);
-                cleanup();
-                if (resp && resp.status === "error") {
-                  alert("Aviso al guardar: " + resp.message);
-                }
-                finalizar(resp || { status: "ok" });
-              };
-              script.onerror = () => {
-                clearTimeout(timer);
-                cleanup();
-                finalizar({ status: "ok" });
-              };
-              script.src = `${baseUrl}&callback=${cbName}`;
-              document.body.appendChild(script);
+              intentarJsonpAccion();
             });
         } else {
-          finalizar({ status: "ok" });
+          intentarJsonpAccion();
         }
       });
     }
