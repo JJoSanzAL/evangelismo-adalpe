@@ -7,7 +7,9 @@
   --color-fondo: #f1f5f9;
   --color-texto: #1e293b;
   --color-tab-resumen: #1d4ed8;
+  --color-tab-resumen-hover: #1e40af;
   --color-tab-curso: #dc2626;
+  --color-tab-curso-hover: #b91c1c;
 }
 
 /* =========================================================
@@ -63,7 +65,7 @@ body.presentation-mode #btn-exit-pres {
 }
 
 /* =========================================================
-   PESTAÑAS LATERALES FLOTANTES (ALTURA MEDIA)
+   BOTONES LATERALES FLOTANTES (ALTURA MEDIA)
    ========================================================= */
 .floating-dock {
   position: fixed;
@@ -73,36 +75,53 @@ body.presentation-mode #btn-exit-pres {
   z-index: 900;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .dock-tab {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   color: #ffffff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 12px 7px;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-  box-shadow: -3px 3px 12px rgba(15, 23, 42, 0.25);
+  letter-spacing: 0.14em;
+  padding: 14px 8px;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-right: none;
+  box-shadow: -4px 4px 14px rgba(15, 23, 42, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
   user-select: none;
+  line-height: 1;
 }
 
 .dock-tab:hover {
-  transform: translateX(-2px);
-  filter: brightness(1.06);
+  transform: translateX(-3px);
+  box-shadow: -6px 6px 18px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.dock-tab:active {
+  transform: translateX(-1px) scale(0.98);
 }
 
 .dock-tab-resumen {
   background-color: var(--color-tab-resumen);
 }
 
+.dock-tab-resumen:hover {
+  background-color: var(--color-tab-resumen-hover);
+}
+
 .dock-tab-curso {
   background-color: var(--color-tab-curso);
+}
+
+.dock-tab-curso:hover {
+  background-color: var(--color-tab-curso-hover);
 }
 
 /* =========================================================
@@ -110,10 +129,10 @@ body.presentation-mode #btn-exit-pres {
    ========================================================= */
 .floating-drawer {
   position: fixed;
-  right: 2.35rem;
+  right: 2.55rem;
   top: 50%;
   transform: translateY(-50%);
-  width: min(21rem, calc(100vw - 3rem));
+  width: min(21rem, calc(100vw - 3.2rem));
   background-color: #ffffff;
   border-radius: 14px;
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
