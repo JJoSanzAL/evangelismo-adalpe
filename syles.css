@@ -1,0 +1,83 @@
+/* =========================================================
+   VARIABLES DE TEMA Y COLORES (Fácil de personalizar)
+   ========================================================= */
+:root {
+  --color-primario: #172554;       /* Encabezado principal (blue-950) */
+  --color-secundario: #1e3a8a;     /* Acentos, pestaña activa y calendario (blue-900) */
+  --color-fondo: #f1f5f9;          /* Fondo general de la aplicación */
+  --color-texto: #1e293b;          /* Texto principal */
+  --color-alerta-header: #7f1d1d;  /* Encabezado widget en curso */
+}
+
+/* =========================================================
+   BASE Y NAVEGACIÓN
+   ========================================================= */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  -webkit-text-size-adjust: 100%;
+}
+
+.app-header,
+.widget-resumen-header {
+  background-color: var(--color-primario);
+}
+
+.tab-active {
+  border-bottom: 3px solid var(--color-secundario);
+  color: var(--color-secundario);
+  font-weight: 700;
+}
+
+/* =========================================================
+   MODO PRESENTACIÓN
+   ========================================================= */
+.presentation-mode header,
+.presentation-mode nav {
+  display: none !important;
+}
+
+.presentation-mode #btn-exit-pres {
+  display: flex !important;
+}
+
+/* =========================================================
+   CALENDARIO FLATPICKR (SOLO VIERNES ACTIVOS)
+   ========================================================= */
+.flatpickr-day:not(.flatpickr-disabled) {
+  font-weight: 700;
+  color: var(--color-secundario);
+}
+
+.flatpickr-day.selected {
+  background: var(--color-secundario) !important;
+  border-color: var(--color-secundario) !important;
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   WIDGETS LATERALES / MÓVIL
+   ========================================================= */
+@media (min-width: 1024px) {
+  .main-safe-area {
+    padding-right: 22.5rem;
+    padding-bottom: 13rem;
+  }
+
+  .mobile-widgets-stack {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: 20rem;
+    z-index: 40;
+  }
+}
+
+@media (max-width: 1023px) {
+  .mobile-widgets-stack {
+    position: static;
+    width: 100%;
+    padding: 0 1rem 2rem 1rem;
+  }
+}
