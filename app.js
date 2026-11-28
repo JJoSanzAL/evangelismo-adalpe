@@ -17,6 +17,7 @@ let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
 let activeLoginTimeout = null;
 let memoriaPin = "";
 let pickerViernes = null;
+let panelAbiertoActual = null;
 window.resumenCopiar = "";
 
 function getUrlActiva() {
@@ -219,14 +220,6 @@ function conectarSistema() {
   }
 
   cargarDatos(pin);
-}
-
-function cerrarSesion() {
-  memoriaPin = "";
-  guardarStorageSeguro("adalpe_pin", "");
-  resetBotonLogin();
-  document.getElementById("input-pin").value = "";
-  document.getElementById("login-screen").classList.remove("hidden");
 }
 
 function extraerJsonDeRespuesta(rawText) {
@@ -442,7 +435,7 @@ function enviarAccion(payload) {
 }
 
 /* =========================================================
-   4. NAVEGACIÓN Y PRESENTACIÓN
+   4. NAVEGACIÓN, PRESENTACIÓN Y VENTANAS FLOTANTES
    ========================================================= */
 function cambiarTab(tab) {
   ["dashboard", "asistencia", "cuotas", "matriculados"].forEach(t => {
@@ -456,6 +449,43 @@ function cambiarTab(tab) {
 
 function togglePresentacion() {
   document.body.classList.toggle("presentation-mode");
+  if (document.body.classList.contains("presentation-mode")) {
+    cerrarPanelFlotante("resumen");
+    cerrarPanelFlotante("curso");
+  }
+}
+
+function abrirPanelFlotante(nombre) {
+  const panelResumen = document.getElementById("panel-resumen");
+  const panelCurso = document.getElementById("panel-curso");
+  panelResumen.classList.add("hidden");
+  panelCurso.classList.add("hidden");
+
+  if (nombre === "resumen") {
+    panelResumen.classList.remove("hidden");
+    panelAbiertoActual = "resumen";
+  } else if (nombre === "curso") {
+    panelCurso.classList.remove("hidden");
+    panelAbiertoActual = "curso";
+  }
+}
+
+function cerrarPanelFlotante(nombre) {
+  if (nombre === "resumen") {
+    document.getElementById("panel-resumen").classList.add("hidden");
+    if (panelAbiertoActual === "resumen") panelAbiertoActual = null;
+  } else if (nombre === "curso") {
+    document.getElementById("panel-curso").classList.add("hidden");
+    if (panelAbiertoActual === "curso") panelAbiertoActual = null;
+  }
+}
+
+function togglePanelFlotante(nombre) {
+  if (panelAbiertoActual === nombre) {
+    cerrarPanelFlotante(nombre);
+  } else {
+    abrirPanelFlotante(nombre);
+  }
 }
 
 /* =========================================================
@@ -769,7 +799,7 @@ function renderDashboard() {
 }
 
 /* =========================================================
-   6. WIDGETS FLOTANTES (RESUMEN SEMANAL Y EN CURSO)
+   6. PANELES FLOTANTES (RESUMEN SEMANAL Y EN CURSO)
    ========================================================= */
 function poblarSelectorResumenSemanal() {
   const fechas = [...new Set(DB.asistencia.map(a => claveFecha(a.Fecha)).filter(f => /^\d{4}-\d{2}-\d{2}$/.test(f)))].sort();
@@ -1002,7 +1032,7 @@ function cargarFormularioFecha() {
     badge.className = "text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded";
   } else {
     badge.textContent = `Fecha nueva (${fechaDMA(fecha)}) — Marca cada hermano`;
-    badge.className = "text-xs font-bold text-blue-900";
+    badge.className = "text-xs font-bold text-emerald-900";
   }
 
   DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo").forEach(m => {
@@ -1027,7 +1057,7 @@ function cargarFormularioFecha() {
 
     return `
       <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-        <p class="text-xs font-bold text-blue-950">${o}</p>
+        <p class="text-xs font-bold text-emerald-950">${o}</p>
         <div class="grid grid-cols-3 gap-1.5">
           <div>
             <label class="block text-[10px] text-slate-500">Evang.</label>
