@@ -9,6 +9,9 @@
   <title>Campaña Evangelizadora ADALPE — Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -26,6 +29,15 @@
     }
     .presentation-mode #btn-exit-pres {
       display: flex !important;
+    }
+    .flatpickr-day:not(.flatpickr-disabled) {
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+    .flatpickr-day.selected {
+      background: #1e3a8a !important;
+      border-color: #1e3a8a !important;
+      color: #ffffff !important;
     }
     @media (min-width: 1024px) {
       .main-safe-area {
@@ -263,7 +275,7 @@
         <div class="flex flex-wrap gap-4 w-full sm:w-auto">
           <div class="w-full sm:w-auto">
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fecha del Viernes</label>
-            <input type="date" id="reg-fecha" onchange="cargarFormularioFecha()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold" />
+            <input type="text" id="reg-fecha" readonly placeholder="Selecciona un viernes" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white cursor-pointer" />
           </div>
           <div class="w-full sm:w-auto">
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Filtrar Obra</label>
@@ -406,6 +418,7 @@
     let chartVarTratados = null, chartVarEvang = null, chartVarHermanos = null;
     let activeLoginTimeout = null;
     let memoriaPin = "";
+    let pickerViernes = null;
     window.resumenCopiar = "";
 
     function getUrlActiva() {
@@ -457,6 +470,13 @@
       } catch (e) {}
     }
 
+    function fechaLocalIso(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
     function claveFecha(val) {
       if (!val) return "";
       const s = String(val).trim();
@@ -471,10 +491,7 @@
       }
       const dObj = new Date(s);
       if (!isNaN(dObj.getTime())) {
-        const y = dObj.getFullYear();
-        const m = String(dObj.getMonth() + 1).padStart(2, "0");
-        const d = String(dObj.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
+        return fechaLocalIso(dObj);
       }
       return s.substring(0, 10);
     }
@@ -522,10 +539,45 @@
       return String(val || "").trim();
     }
 
+    function obtenerViernesMasReciente(fechaBase) {
+      const d = new Date(fechaBase.getFullYear(), fechaBase.getMonth(), fechaBase.getDate());
+      const diff = (d.getDay() + 2) % 7;
+      d.setDate(d.getDate() - diff);
+      return d;
+    }
+
+    function inicializarSelectorSoloViernes() {
+      const ahora = new Date();
+      const viernesInicial = obtenerViernesMasReciente(ahora);
+      const inputEl = document.getElementById("reg-fecha");
+      if (!inputEl) return;
+
+      if (typeof flatpickr === "function") {
+        pickerViernes = flatpickr(inputEl, {
+          locale: (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.es) ? flatpickr.l10ns.es : "default",
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d/m/Y",
+          altInputClass: "w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white cursor-pointer",
+          defaultDate: viernesInicial,
+          disableMobile: true,
+          enable: [
+            function(date) {
+              return date.getDay() === 5;
+            }
+          ],
+          onChange: function() {
+            cargarFormularioFecha();
+          }
+        });
+      } else {
+        inputEl.value = fechaLocalIso(viernesInicial);
+      }
+    }
+
     window.onload = () => {
       cargarCacheVisitas();
-      const hoy = new Date();
-      document.getElementById("reg-fecha").value = hoy.toISOString().split("T")[0];
+      inicializarSelectorSoloViernes();
       guardarStorageSeguro("adalpe_url", URL_SCRIPT_FIJA);
       const pinGuardado = leerStorageSeguro("adalpe_pin");
       const inp = document.getElementById("input-pin");
@@ -1375,13 +1427,13 @@ Evangelizados congregaciones: ${evCong}
         badge.textContent = `Fecha ya guardada (${fechaDMA(fecha)}) — Cambia solo lo necesario`;
         badge.className = "text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded";
       } else {
-        badge.textContent = `Fecha nueva (${fechaDMA(fecha)})`;
+        badge.textContent = `Fecha nueva (${fechaDMA(fecha)}) — Marca cada hermano`;
         badge.className = "text-xs font-bold text-blue-900";
       }
 
       DB.matriculados.filter(m => normalizarEstado(m.Estado) === "Activo").forEach(m => {
         const found = existentes.find(e => String(e.ID_Hermano).trim() === String(m.ID).trim());
-        const codGuardado = found !== undefined ? Number(found.Codigo) : 1;
+        const codGuardado = (found !== undefined && found.Codigo !== "" && found.Codigo !== null) ? Number(found.Codigo) : null;
         formState[m.ID] = {
           codigo: codGuardado === 3 ? 1 : codGuardado,
           observacion: found ? (found.Observacion || "") : ""
@@ -1446,7 +1498,7 @@ Evangelizados congregaciones: ${evCong}
             </div>
           `;
         }
-        const st = formState[m.ID] || { codigo: 1, observacion: "" };
+        const st = formState[m.ID] || { codigo: null, observacion: "" };
         return `
           <div class="px-4 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50">
             <div class="min-w-[200px]">
@@ -1473,32 +1525,40 @@ Evangelizados congregaciones: ${evCong}
     }
 
     function setCodigo(id, cod) {
-      if (!formState[id]) formState[id] = { codigo: cod, observacion: "" };
-      formState[id].codigo = cod;
+      if (!formState[id]) formState[id] = { codigo: null, observacion: "" };
+      formState[id].codigo = (formState[id].codigo === cod) ? null : cod;
       renderListaAsistencia();
     }
 
     function setObs(id, txt) {
-      if (!formState[id]) formState[id] = { codigo: 1, observacion: "" };
+      if (!formState[id]) formState[id] = { codigo: null, observacion: "" };
       formState[id].observacion = txt;
     }
 
     async function guardarSoloAsistencia() {
-      const btn = document.getElementById("btn-guardar-asis");
-      btn.disabled = true;
-      btn.textContent = "Guardando...";
       const fecha = claveFecha(document.getElementById("reg-fecha").value);
       const obraFiltro = document.getElementById("reg-obra").value;
 
-      const registros = DB.matriculados
-        .filter(m => normalizarEstado(m.Estado) === "Activo" && (obraFiltro === "TODAS" || normalizarObraTexto(m.Obra) === obraFiltro))
-        .map(m => ({
-          id_hermano: m.ID,
-          nombre: m.Nombres_Apellidos,
-          obra: m.Obra,
-          codigo: formState[m.ID] ? formState[m.ID].codigo : 1,
-          observacion: formState[m.ID] ? formState[m.ID].observacion : ""
-        }));
+      const activosFiltrados = DB.matriculados
+        .filter(m => normalizarEstado(m.Estado) === "Activo" && (obraFiltro === "TODAS" || normalizarObraTexto(m.Obra) === obraFiltro));
+
+      const sinMarcar = activosFiltrados.filter(m => !formState[m.ID] || formState[m.ID].codigo === null || formState[m.ID].codigo === undefined);
+      if (sinMarcar.length > 0) {
+        alert(`Todavía hay ${sinMarcar.length} hermano(s) sin marcar asistencia (por ejemplo: ${sinMarcar[0].Nombres_Apellidos}).`);
+        return;
+      }
+
+      const btn = document.getElementById("btn-guardar-asis");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      const registros = activosFiltrados.map(m => ({
+        id_hermano: m.ID,
+        nombre: m.Nombres_Apellidos,
+        obra: m.Obra,
+        codigo: formState[m.ID].codigo,
+        observacion: formState[m.ID].observacion || ""
+      }));
 
       const resp = await enviarAccion({ action: "saveAsistencia", fecha, obraFiltro, registros });
       btn.disabled = false;
