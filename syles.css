@@ -2,12 +2,12 @@
    VARIABLES DE TEMA Y COLORES (A juego con Arca Misionera)
    ========================================================= */
 :root {
-  --color-primario: #1b7a43;       /* Verde principal del logo */
-  --color-primario-oscuro: #135830; /* Verde profundo para degradado y acentos */
-  --color-fondo: #f1f5f9;          /* Fondo general de la aplicación */
-  --color-texto: #1e293b;          /* Texto principal */
-  --color-tab-resumen: #1d4ed8;    /* Azul pestaña Resumen */
-  --color-tab-curso: #dc2626;      /* Rojo pestaña Curso */
+  --color-primario: #1b7a43;
+  --color-primario-oscuro: #135830;
+  --color-fondo: #f1f5f9;
+  --color-texto: #1e293b;
+  --color-tab-resumen: #1d4ed8;
+  --color-tab-curso: #dc2626;
 }
 
 /* =========================================================
@@ -23,6 +23,7 @@ body {
 
 .app-header {
   background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primario-oscuro) 100%);
+  color: #ffffff;
 }
 
 .tab-active {
@@ -34,15 +35,17 @@ body {
 /* =========================================================
    MODO PRESENTACIÓN
    ========================================================= */
-.presentation-mode .app-header,
-.presentation-mode .app-nav,
-.presentation-mode .floating-dock,
-.presentation-mode .floating-drawer {
+body.presentation-mode .app-header,
+body.presentation-mode .app-nav,
+body.presentation-mode .floating-dock,
+body.presentation-mode .floating-drawer {
   display: none !important;
 }
 
-.presentation-mode #btn-exit-pres {
-  display: flex !important;
+body.presentation-mode #btn-exit-pres {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 /* =========================================================
@@ -67,7 +70,7 @@ body {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 45;
+  z-index: 900;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -115,6 +118,6 @@ body {
   border-radius: 14px;
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
   border: 1px solid #cbd5e1;
-  z-index: 46;
+  z-index: 950;
   overflow: hidden;
 }
