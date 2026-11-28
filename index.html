@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <title>Campaña Evangelizadora ADALPE — Dashboard</title>
+  <title>Campaña Evangelizadora — Arca Misionera</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -19,7 +19,7 @@
   <div id="login-screen" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
       <div class="text-center">
-        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full mb-2">ADALPE • CONTROL EVANGELÍSTICO</span>
+        <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full mb-2">ARCA MISIONERA • CONTROL EVANGELÍSTICO</span>
         <h1 class="text-2xl font-bold text-slate-900">Acceso al Sistema</h1>
         <p class="text-sm text-slate-500 mt-1">Ingresa tu clave de acceso para continuar</p>
       </div>
@@ -33,61 +33,61 @@
           autocomplete="current-password"
           placeholder="Ingresa la clave"
           onkeydown="if(event.key==='Enter') conectarSistema()"
-          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-base text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600"
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-base text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-600"
         />
       </div>
-      <button id="btn-ingresar" type="button" onclick="conectarSistema()" class="w-full bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white font-semibold py-3 rounded-lg transition shadow">
+      <button id="btn-ingresar" type="button" onclick="conectarSistema()" class="w-full bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-semibold py-3 rounded-lg transition shadow">
         Ingresar
       </button>
       <p id="login-error" class="text-xs text-red-600 text-center hidden"></p>
     </div>
   </div>
 
-  <button id="btn-exit-pres" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-40 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg items-center gap-1 opacity-90 hover:opacity-100">
+  <button id="btn-exit-pres" type="button" onclick="togglePresentacion()" class="hidden fixed top-4 right-4 z-50 bg-slate-900 text-white text-xs px-3.5 py-2 rounded-full shadow-lg items-center gap-1.5 opacity-95 hover:opacity-100">
     Salir de Presentación
   </button>
 
-  <header class="app-header text-white px-4 sm:px-6 py-4 shadow-md">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <!-- Espacio listo para agregar el logo de la iglesia -->
-        <div id="church-logo-slot" class="hidden">
-          <img id="church-logo" src="" alt="Logo Iglesia ADALPE" class="h-11 w-11 object-contain rounded-lg bg-white/10 p-1" />
+  <header class="app-header text-white px-4 sm:px-6 py-3.5 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex flex-col justify-center gap-2 shrink-0">
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="cargarDatos()" class="bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition">
+            Actualizar Datos
+          </button>
+          <button type="button" onclick="togglePresentacion()" class="bg-emerald-950/75 hover:bg-emerald-950 border border-emerald-200/30 text-white text-xs px-3 py-2 rounded-lg font-semibold transition shadow">
+            Modo Presentación
+          </button>
         </div>
-        <div>
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight">Campaña Evangelizadora — ADALPE</h1>
-          <p class="text-xs text-blue-200">Panel de Control, Asistencia, Evangelismo y Cuotas</p>
-        </div>
+        <p class="text-sm sm:text-base font-bold tracking-tight text-white">
+          Campaña Evangelizadora
+        </p>
       </div>
 
-      <p class="hidden lg:block text-[10px] italic text-blue-100/90 max-w-md text-center leading-snug">
-        “Porque el Hijo del Hombre vino a buscar y a salvar lo que se había perdido.” <span class="not-italic font-semibold text-blue-200">Lucas 19:10</span>
+      <p class="hidden md:block text-xs italic text-emerald-50/95 max-w-md text-center leading-snug">
+        “Porque el Hijo del Hombre vino a buscar y a salvar lo que se había perdido.” <span class="not-italic font-semibold text-white">Lucas 19:10</span>
       </p>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick="cargarDatos()" class="bg-blue-800 hover:bg-blue-700 text-xs px-3 py-2 rounded-lg font-medium transition">
-          Actualizar Datos
-        </button>
-        <button type="button" onclick="togglePresentacion()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-2 rounded-lg font-semibold transition shadow">
-          Modo Presentación
-        </button>
-        <button type="button" onclick="cerrarSesion()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded-lg transition">
-          Bloquear
-        </button>
+      <div class="flex items-center justify-end shrink-0">
+        <img
+          id="church-logo"
+          src="assets/logo-arca-misionera.png"
+          alt="Logo Iglesia Evangélica Arca Misionera"
+          class="h-14 sm:h-16 w-auto max-w-[230px] sm:max-w-[280px] object-contain rounded-lg bg-white px-2 py-1 shadow-sm"
+        />
       </div>
     </div>
   </header>
   
-  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <nav class="app-nav bg-white border-b border-slate-200 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-5 overflow-x-auto text-sm">
       <button type="button" onclick="cambiarTab('dashboard')" id="tab-dashboard" class="py-3.5 tab-active whitespace-nowrap">1. Dashboard y Gráficos</button>
-      <button type="button" onclick="cambiarTab('asistencia')" id="tab-asistencia" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">2. Tomar Asistencia (Viernes)</button>
-      <button type="button" onclick="cambiarTab('cuotas')" id="tab-cuotas" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">3. Cuotas (S/ 2.00)</button>
-      <button type="button" onclick="cambiarTab('matriculados')" id="tab-matriculados" class="py-3.5 text-slate-600 hover:text-blue-900 whitespace-nowrap">4. Matriculados</button>
+      <button type="button" onclick="cambiarTab('asistencia')" id="tab-asistencia" class="py-3.5 text-slate-600 hover:text-emerald-800 whitespace-nowrap">2. Tomar Asistencia (Viernes)</button>
+      <button type="button" onclick="cambiarTab('cuotas')" id="tab-cuotas" class="py-3.5 text-slate-600 hover:text-emerald-800 whitespace-nowrap">3. Cuotas (S/ 2.00)</button>
+      <button type="button" onclick="cambiarTab('matriculados')" id="tab-matriculados" class="py-3.5 text-slate-600 hover:text-emerald-800 whitespace-nowrap">4. Matriculados</button>
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 main-safe-area">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <section id="view-dashboard" class="space-y-6">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -115,7 +115,7 @@
             </select>
           </div>
         </div>
-        <div id="badge-comparativo" class="text-xs font-semibold px-3 py-2 rounded-lg bg-blue-50 text-blue-900 border border-blue-200">
+        <div id="badge-comparativo" class="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200">
           Comparativo semanal y mensual activo
         </div>
       </div>
@@ -267,9 +267,9 @@
         <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
           <div class="flex flex-wrap items-center gap-3">
             <span class="text-xs font-bold text-slate-600 uppercase">Lista de Matriculados Activos (1=Presente, 2=Justificada, 0=Injustificada)</span>
-            <span id="contador-rapido" class="text-xs font-bold text-blue-900"></span>
+            <span id="contador-rapido" class="text-xs font-bold text-emerald-900"></span>
           </div>
-          <button type="button" onclick="guardarSoloAsistencia()" id="btn-guardar-asis" class="w-full sm:w-auto bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2 rounded-lg text-xs shadow transition">
+          <button type="button" onclick="guardarSoloAsistencia()" id="btn-guardar-asis" class="w-full sm:w-auto bg-emerald-800 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-lg text-xs shadow transition">
             Guardar Asistencia del Viernes
           </button>
         </div>
@@ -335,36 +335,54 @@
     </section>
   </main>
 
-  <div class="mobile-widgets-stack space-y-2.5">
-    <aside id="widget-resumen-semanal" class="bg-white rounded-xl shadow-xl border border-blue-200 overflow-hidden">
-      <div class="widget-resumen-header text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-resumen-body').classList.toggle('hidden')">
-        <span class="text-xs font-bold tracking-wide">Resumen Semanal</span>
-        <span id="badge-fecha-resumen" class="bg-blue-800 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded">—</span>
-      </div>
-      <div class="px-3 pt-2 pb-1.5 bg-blue-50/70 border-b border-blue-100" onclick="event.stopPropagation()">
-        <label for="resumen-semana-select" class="block text-[10px] font-bold text-blue-900 uppercase mb-0.5">Buscar / Elegir Semana</label>
-        <select id="resumen-semana-select" onchange="renderResumenSemanal(this.value)" class="w-full border border-blue-200 bg-white rounded px-2 py-1 text-[11px] font-semibold text-slate-800">
-          <option value="">Última semana</option>
-        </select>
-      </div>
-      <div id="widget-resumen-body" class="p-3 max-h-[27rem] overflow-y-auto text-[11px] space-y-1.5 bg-slate-50/70">
-        <p class="text-slate-500 text-center py-2">Cargando resumen...</p>
-      </div>
-    </aside>
-
-    <aside id="widget-clases" class="bg-white rounded-xl shadow-xl border border-red-200 overflow-hidden">
-      <div class="bg-red-900 text-white px-3.5 py-2 flex items-center justify-between cursor-pointer" onclick="document.getElementById('widget-clases-body').classList.toggle('hidden')">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span class="text-xs font-bold tracking-wide">Hermanos en curso de evangelismo</span>
-        </div>
-        <span id="badge-count-clases" class="bg-red-700 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
-      </div>
-      <div id="widget-clases-body" class="p-3 max-h-44 overflow-y-auto space-y-2 bg-red-50/40 text-xs">
-        <p class="text-slate-500 text-center py-2">Ningún hermano marcado en curso de evangelismo.</p>
-      </div>
-    </aside>
+  <!-- Pestañas flotantes en el borde derecho a media altura -->
+  <div id="floating-dock" class="floating-dock">
+    <button type="button" id="dock-tab-resumen" onclick="togglePanelFlotante('resumen')" class="dock-tab dock-tab-resumen" title="Abrir o cerrar Resumen">
+      Resumen
+    </button>
+    <button type="button" id="dock-tab-curso" onclick="togglePanelFlotante('curso')" class="dock-tab dock-tab-curso" title="Abrir o cerrar Curso">
+      Curso
+    </button>
   </div>
+
+  <!-- Ventana flotante: Resumen Semanal -->
+  <aside id="panel-resumen" class="floating-drawer hidden" aria-label="Resumen Semanal">
+    <div class="bg-blue-700 text-white px-3.5 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold tracking-wide">Resumen Semanal</span>
+        <span id="badge-fecha-resumen" class="bg-blue-900/80 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded">—</span>
+      </div>
+      <button type="button" onclick="cerrarPanelFlotante('resumen')" title="Ocultar ventana" class="bg-blue-900/70 hover:bg-blue-950 text-white text-xs font-bold px-2.5 py-1 rounded transition">
+        ▸ Ocultar
+      </button>
+    </div>
+    <div class="px-3 pt-2 pb-1.5 bg-blue-50/70 border-b border-blue-100">
+      <label for="resumen-semana-select" class="block text-[10px] font-bold text-blue-900 uppercase mb-0.5">Buscar / Elegir Semana</label>
+      <select id="resumen-semana-select" onchange="renderResumenSemanal(this.value)" class="w-full border border-blue-200 bg-white rounded px-2 py-1 text-[11px] font-semibold text-slate-800">
+        <option value="">Última semana</option>
+      </select>
+    </div>
+    <div id="widget-resumen-body" class="p-3 max-h-[26rem] overflow-y-auto text-[11px] space-y-1.5 bg-slate-50/70">
+      <p class="text-slate-500 text-center py-2">Cargando resumen...</p>
+    </div>
+  </aside>
+
+  <!-- Ventana flotante: Hermanos en Curso -->
+  <aside id="panel-curso" class="floating-drawer hidden" aria-label="Hermanos en curso de evangelismo">
+    <div class="bg-red-700 text-white px-3.5 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-300 animate-pulse"></span>
+        <span class="text-xs font-bold tracking-wide">Curso de Evangelismo</span>
+        <span id="badge-count-clases" class="bg-red-950/75 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <button type="button" onclick="cerrarPanelFlotante('curso')" title="Ocultar ventana" class="bg-red-950/70 hover:bg-red-950 text-white text-xs font-bold px-2.5 py-1 rounded transition">
+        ▸ Ocultar
+      </button>
+    </div>
+    <div id="widget-clases-body" class="p-3 max-h-72 overflow-y-auto space-y-2 bg-red-50/40 text-xs">
+      <p class="text-slate-500 text-center py-2">Ningún hermano marcado en curso de evangelismo.</p>
+    </div>
+  </aside>
 
   <script src="app.js"></script>
 </body>
