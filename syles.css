@@ -1,12 +1,13 @@
 /* =========================================================
-   VARIABLES DE TEMA Y COLORES (Fácil de personalizar)
+   VARIABLES DE TEMA Y COLORES (A juego con Arca Misionera)
    ========================================================= */
 :root {
-  --color-primario: #172554;       /* Encabezado principal (blue-950) */
-  --color-secundario: #1e3a8a;     /* Acentos, pestaña activa y calendario (blue-900) */
+  --color-primario: #1b7a43;       /* Verde principal del logo */
+  --color-primario-oscuro: #135830; /* Verde profundo para degradado y acentos */
   --color-fondo: #f1f5f9;          /* Fondo general de la aplicación */
   --color-texto: #1e293b;          /* Texto principal */
-  --color-alerta-header: #7f1d1d;  /* Encabezado widget en curso */
+  --color-tab-resumen: #1d4ed8;    /* Azul pestaña Resumen */
+  --color-tab-curso: #dc2626;      /* Rojo pestaña Curso */
 }
 
 /* =========================================================
@@ -17,24 +18,26 @@ body {
   background-color: var(--color-fondo);
   color: var(--color-texto);
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
-.app-header,
-.widget-resumen-header {
-  background-color: var(--color-primario);
+.app-header {
+  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primario-oscuro) 100%);
 }
 
 .tab-active {
-  border-bottom: 3px solid var(--color-secundario);
-  color: var(--color-secundario);
+  border-bottom: 3px solid var(--color-primario);
+  color: var(--color-primario-oscuro);
   font-weight: 700;
 }
 
 /* =========================================================
    MODO PRESENTACIÓN
    ========================================================= */
-.presentation-mode header,
-.presentation-mode nav {
+.presentation-mode .app-header,
+.presentation-mode .app-nav,
+.presentation-mode .floating-dock,
+.presentation-mode .floating-drawer {
   display: none !important;
 }
 
@@ -47,37 +50,71 @@ body {
    ========================================================= */
 .flatpickr-day:not(.flatpickr-disabled) {
   font-weight: 700;
-  color: var(--color-secundario);
+  color: var(--color-primario-oscuro);
 }
 
 .flatpickr-day.selected {
-  background: var(--color-secundario) !important;
-  border-color: var(--color-secundario) !important;
+  background: var(--color-primario) !important;
+  border-color: var(--color-primario) !important;
   color: #ffffff !important;
 }
 
 /* =========================================================
-   WIDGETS LATERALES / MÓVIL
+   PESTAÑAS LATERALES FLOTANTES (ALTURA MEDIA)
    ========================================================= */
-@media (min-width: 1024px) {
-  .main-safe-area {
-    padding-right: 22.5rem;
-    padding-bottom: 13rem;
-  }
-
-  .mobile-widgets-stack {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    width: 20rem;
-    z-index: 40;
-  }
+.floating-dock {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-@media (max-width: 1023px) {
-  .mobile-widgets-stack {
-    position: static;
-    width: 100%;
-    padding: 0 1rem 2rem 1rem;
-  }
+.dock-tab {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 12px 7px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  box-shadow: -3px 3px 12px rgba(15, 23, 42, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  user-select: none;
+}
+
+.dock-tab:hover {
+  transform: translateX(-2px);
+  filter: brightness(1.06);
+}
+
+.dock-tab-resumen {
+  background-color: var(--color-tab-resumen);
+}
+
+.dock-tab-curso {
+  background-color: var(--color-tab-curso);
+}
+
+/* =========================================================
+   VENTANAS FLOTANTES DESPLEGABLES
+   ========================================================= */
+.floating-drawer {
+  position: fixed;
+  right: 2.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(21rem, calc(100vw - 3rem));
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
+  border: 1px solid #cbd5e1;
+  z-index: 46;
+  overflow: hidden;
 }
