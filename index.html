@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body class="text-slate-800">
 
@@ -349,25 +349,23 @@
     </section>
   </main>
 
-  <!-- Pestañas flotantes en el borde derecho a media altura -->
-  <div id="floating-dock" class="floating-dock" style="position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 900;">
+<!-- Pestañas flotantes en el borde derecho a media altura (ocultas hasta ingresar) -->
+  <div id="floating-dock" class="floating-dock" style="display: none;">
     <button
       type="button"
       id="dock-tab-resumen"
       onclick="togglePanelFlotante('resumen')"
-      style="background-color: #1d4ed8; color: #ffffff; writing-mode: vertical-rl;"
-      class="dock-tab"
+      class="dock-tab dock-tab-resumen"
       title="Abrir Resumen Semanal">
-      Resumen
+      RESUMEN
     </button>
     <button
       type="button"
       id="dock-tab-curso"
       onclick="togglePanelFlotante('curso')"
-      style="background-color: #dc2626; color: #ffffff; writing-mode: vertical-rl;"
-      class="dock-tab"
+      class="dock-tab dock-tab-curso"
       title="Abrir Hermanos en Curso">
-      Curso
+      CURSO
     </button>
   </div>
 
@@ -410,6 +408,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
