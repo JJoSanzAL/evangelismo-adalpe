@@ -448,10 +448,26 @@ function cambiarTab(tab) {
 }
 
 function togglePresentacion() {
-  document.body.classList.toggle("presentation-mode");
-  if (document.body.classList.contains("presentation-mode")) {
+  const activar = !document.body.classList.contains("presentation-mode");
+  document.body.classList.toggle("presentation-mode", activar);
+
+  const headerEl = document.getElementById("main-header");
+  const navEl = document.getElementById("main-nav");
+  const dockEl = document.getElementById("floating-dock");
+  const exitBtn = document.getElementById("btn-exit-pres");
+
+  if (activar) {
     cerrarPanelFlotante("resumen");
     cerrarPanelFlotante("curso");
+    if (headerEl) headerEl.style.display = "none";
+    if (navEl) navEl.style.display = "none";
+    if (dockEl) dockEl.style.display = "none";
+    if (exitBtn) exitBtn.style.display = "inline-flex";
+  } else {
+    if (headerEl) headerEl.style.display = "";
+    if (navEl) navEl.style.display = "";
+    if (dockEl) dockEl.style.display = "flex";
+    if (exitBtn) exitBtn.style.display = "none";
   }
 }
 
